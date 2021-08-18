@@ -1,0 +1,29 @@
+# docker-compose up -d --build service db
+
+version: '3.7'
+
+services:
+
+  db:
+    image: mongo
+    container_name: 'wallets-manager-database'
+    environment:
+      MONGO_INITDB_DATABASE: wallets
+      MONGO_INITDB_ROOT_USERNAME: wallets-manager-root
+      MONGO_INITDB_ROOT_PASSWORD: wallets-manager-password
+    volumes: 
+      - ./db:/data/db
+    ports:
+      - '27017-27019:27017-27019'
+
+  # light-client:
+
+  service:
+    container_name: 'wallets-manager-service'
+    build: ./service
+    environment:
+      BLOCKCHAIN_NET: testnet
+    volumes:
+      - ./service:/service
+    ports: 
+      - 8080:8080

@@ -1,0 +1,23 @@
+{
+  "name": "wallets-manager",
+  "version": "0.1.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Seasteading/wallets-manager.git"
+  },
+  "author": "Nikita Nikonov",
+  "license": "none",
+  "bugs": {
+    "url": "https://github.com/Seasteading/wallets-manager/issues"
+  },
+  "homepage": "https://github.com/Seasteading/wallets-manager#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "swagger-ui-express": "^4.1.6"
+  }
+}
