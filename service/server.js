@@ -1,4 +1,6 @@
 // TODO: .gitignore ignore db
+// TODO:security:mongonotavialableromnet
+// TODO:testnet api (tokens)
 
 'use strict';
 
