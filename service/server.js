@@ -1,6 +1,5 @@
 // TODO: .gitignore ignore db
-// TODO:security:mongonotavialableromnet
-// TODO:testnet api (tokens)
+// TODO: testnet api (tokens)
 
 'use strict';
 
@@ -8,10 +7,16 @@ const express = require('express');
 const app = express();
 const port = 2311;
 
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
+const db = {
+  url: 'mongodb://db:27017/wallets'
+}
+const mongo = require('mongodb').MongoClient;
+mongo.connect(db.url, (err, database) => {
+  if (err) return console.log(err);
 
-app.listen(port, () => {
-  console.log(`wallets-manager running at http://localhost:${port}`)
+  require('./api')(app, database);
+
+  app.listen(port, () => {
+    console.log(`wallets-manager running at http://localhost:${port}`);
+  });
 })
