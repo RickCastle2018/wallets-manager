@@ -1,7 +1,7 @@
-// TODO: .gitignore ignore db
-// TODO: testnet api (tokens)
-
 'use strict';
+
+// TODO: Mongoose
+// TODO: javascript-sdk
 
 const express = require('express');
 const app = express();
