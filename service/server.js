@@ -1,8 +1,9 @@
 'use strict';
 
-// TODO: docker-compose networking
+// TODO: docker-compose networking (db security)
+// TODO: backup-system
 
-// Tiny logger
+// TODO: Logger lib
 var log_file_err = fs.createWriteStream(__dirname + '/error.log', {
   flags: 'a'
 });
@@ -23,6 +24,8 @@ const {
 const api = (process.env.BLOCKCHAIN_NET == "mainnet") ? " https://dex.binance.org/" : "https://testnet-dex.binance.org/";
 const client = new BncClient(api);
 client.initChain();
+
+// TODO: Create round-wallet if not present
 
 // Start mongoose connection
 const mongoose = require('mongoose');
