@@ -17,9 +17,10 @@
   },
   "homepage": "https://github.com/Seasteading/wallets-manager#readme",
   "dependencies": {
-    "body-parser": "^1.19.0",
+    "@binance-chain/javascript-sdk": "^4.1.1",
     "express": "^4.17.1",
     "mongodb": "^4.1.0",
+    "mongoose": "^5.13.7",
     "swagger-ui-express": "^4.1.6"
   }
 }

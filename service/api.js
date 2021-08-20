@@ -1,8 +1,9 @@
 module.exports = function(app, db) {
 
-    app.post('/notes', (req, res) => {
-      console.log(req.body);
-      res.send('Hello');
+    app.use('/', (res) => {
+      res.redirect(301, 'https://github.com/Seasteading/wallets-manager')
     });
+
+    
 
 };
