@@ -1,4 +1,4 @@
-# docker-compose up -d --build service db
+# docker-compose up -d --restart=always
 
 version: '3.7'
 
@@ -15,8 +15,6 @@ services:
       - ./db:/data/db
     ports:
       - '27017-27019:27017-27019'
-
-  # light-client:
 
   service:
     container_name: 'wallets-manager-service'
