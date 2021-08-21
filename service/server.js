@@ -1,9 +1,9 @@
 'use strict';
 
-// TODO: docker-compose networking (db security)
-// TODO: backup system
+// TODO: Fuck. I can't live without Golang IDE support. MIGRATE TO TYPESCRIPT
 
-// TODO: LOGGING: find logger lib and implement
+// TODO: backup system
+// TODO: logging, find logger lib and implement
 
 // Define express.js app
 const express = require('express');
@@ -20,8 +20,6 @@ const bnc = new BncClient(api);
 bnc.chooseNetwork(process.env.BLOCKCHAIN_NET || "testnet")
 bnc.initChain();
 
-console.log(bnc.createAccount().address)
-
 // Start mongoose connection
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://db:27017/wallets', {
@@ -34,6 +32,7 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', (db) => {
   // TODO: Create round-wallet if not present in DB
+  // TODO: Set userWalletRefillWebhook longpoller
 
   app.use(express.urlencoded({
     extended: true

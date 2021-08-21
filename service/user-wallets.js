@@ -42,5 +42,12 @@ userWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
 const userWalletModel = mongoose.model('userWallet', userWalletSchema);
 
 module.exports = {
-    userWallet: userWalletModel
+    userWallet: userWalletModel,
+    listenUserWalletsRefills: function () {
+        // Fuck. This is the most complicated thing in the project
+        // https://docs.binance.org/api-reference/dex-api/ws-connection.html
+
+        // I need to subscribe to an transfer updates in every wallet. WSCONNECTIONS = user-wallets count
+        // and this function should be running in child process continously
+    }
 }

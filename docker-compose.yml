@@ -11,10 +11,8 @@ services:
       MONGO_INITDB_DATABASE: wallets
       MONGO_INITDB_ROOT_USERNAME: wallets-manager-root
       MONGO_INITDB_ROOT_PASSWORD: wallets-manager-password
-    volumes: 
+    volumes:
       - ./db:/data/db
-    ports:
-      - '27017-27019:27017-27019'
 
   service:
     container_name: 'wallets-manager-service'
@@ -25,3 +23,7 @@ services:
       - ./service:/service
     ports: 
       - 2311:2311
+    depends_on:
+      - db
+    links:
+      - db
