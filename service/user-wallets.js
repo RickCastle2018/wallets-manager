@@ -1,27 +1,46 @@
 // user-wallets.js is kinda Model (in the MVC paradigm)
 
-const { Decimal128 } = require("mongodb");
+// TODO: Write comments
 
-// TODO: Rewrite as object
-module.exports = function (mongoose, db) {
+const {
+    Decimal128
+} = require("mongodb");
 
-    // TODO: implement transaction history (approve transaction data)
-    // const transactionSchema = new mongoose.Schema({
-    //     // …
-    // });
+// TODO: implement transaction history (approve transaction data)
+// const transactionSchema = new mongoose.Schema({
+//     // …
+// });
 
-    const userWalletSchema = new mongoose.Schema({
-        id: mongoose.ObjectId,
-        gameId: Number,
-        createdDate: Date,
-        bnbAddress: String, 
-        balance: Decimal128,
-        privateKey: String,
-        // transactionHistory: [transactionSchema]
-    });
+const userWalletSchema = new mongoose.Schema({
+    createdDate: Date,
+    idInGame: Number,
+    bnbAddress: String,
+    privateKey: String,
+    balance: Decimal128,
+    // transactionHistory: [transactionSchema]
+});
 
-    // Schema methods
+userWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
+    const asset = "BNB";
+    bnc.setPrivateKey(this.privateKey);
+    bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
+        (res) => {
+            if (res.status === 200) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    );
+}
 
-    const userWallet = mongoose.model('userWallet', userWalletSchema);
+// TODO: _construct method?
+// userWalletSchema.methods.createDocument(mongoose) = function() {
+//     // …
+// }
 
+const userWalletModel = mongoose.model('userWallet', userWalletSchema);
+
+module.exports = {
+    userWallet: userWalletModel
 }
