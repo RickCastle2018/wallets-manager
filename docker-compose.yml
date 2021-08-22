@@ -1,4 +1,4 @@
-# docker-compose up -d 
+# docker-compose up --build service db
 
 version: '3.7'
 
@@ -13,12 +13,15 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: wallets-manager-password
     volumes:
       - ./db:/data/db
+    ports: # DEV rm in prod
+      - '27017-27019:27017-27019'
+
 
   service:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
-      BLOCKCHAIN_NET: testnet
+      BLOCKCHAIN_NET: testnet # DEV change to mainnet in prod
     volumes:
       - ./service:/service
     ports: 

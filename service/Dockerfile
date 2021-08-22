@@ -6,9 +6,16 @@ WORKDIR /service
 
 COPY package*.json ./
 
-RUN npm install
+RUN apt-get update
+RUN apt-get install -y libudev-dev libusb-dev usbutils
+
+# FIX: usb module crash. Can't use npm install
+RUN npm install express
+RUN npm install mongodb
+RUN npm install mongoose
+RUN npm install @binance-chain/javascript-sdk --no-optional
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 2311
 CMD [ "node", "server.js" ]

@@ -1,16 +1,17 @@
 {
   "name": "wallets-manager",
-  "version": "0.1.0dev",
-  "description": "seastate games wallets-manager service ",
+  "version": "0.1.0",
+  "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Seasteading/wallets-manager.git"
   },
-  "author": "Nikita Nikonov @ Seastate",
+  "author": "Nikita Nikonov <nnikonov2006@gmail.com>",
   "license": "UNLICENSED",
   "bugs": {
     "url": "https://github.com/Seasteading/wallets-manager/issues"
@@ -19,6 +20,7 @@
   "dependencies": {
     "@binance-chain/javascript-sdk": "^4.1.1",
     "express": "^4.17.1",
+    "mongodb": "^4.1.0",
     "mongoose": "^5.13.7"
   }
 }

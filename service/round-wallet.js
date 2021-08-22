@@ -1,5 +1,11 @@
 // round-wallet.js is kinda Model (in the MVC paradigm)
 
+const mongoose = require('mongoose');
+
+const {
+    Decimal128
+} = require("mongodb");
+
 const roundWalletSchema = new mongoose.Schema({
     asset: String,
     address: String,
@@ -21,25 +27,35 @@ roundWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
     );
 }
 
-const roundWalletModel = mongoose.model('roundWallet', roundWalletSchema);
+const RoundWallet = mongoose.model('RoundWallet', roundWalletSchema);
 
 // TODO: Maybe update round wallet (change address & transfer money) function
 
 module.exports = {
-    roundWallet: roundWalletModel,
-    loadRoundWallet: function (bnc, roundWalletModel) {
+    Model: RoundWallet,
+    load: function (bnc, model) {
 
-        // Check if there's no round wallet
-        const account = bnc.createAccount();
-        const rW = new roundWalletModel({
-            asset: 'bnb',
-            address: account.address,
-            privateKey: account.privateKey,
-            balance: 0
-        });
-        rW.save(function (err, rW) {
+        const roundWallets = model.find(function (err, roundWallets) {
             if (err) return console.error(err);
+            return roundWallets;
         });
+
+        if (roundWallets.length < 1) {
+            const account = bnc.createAccount();
+            const rW = new model({
+                asset: 'bnb',
+                address: account.address,
+                privateKey: account.privateKey,
+                balance: 0
+            });
+            rW.save(function (err, rW) {
+                if (err) return console.error(err);
+            });
+            return rW;
+        } else {
+            const rW = roundWallets[0];
+            return rW;
+        }
 
     }
 }
