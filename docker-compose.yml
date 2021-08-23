@@ -25,7 +25,7 @@ services:
       BLOCKCHAIN_NET: testnet # DEV/TEST change to "mainnet" in PROD
     volumes:
       - ./service:/service
-    ports: 
+    ports:
       - 127.0.0.1:2311:2311 # 127.0.0.1 IS TO MAKE SERVICE AVAILBLE ONLY ON SERVER, NOT IN INTERNET (because service don't have auth now)
     depends_on:
       - db

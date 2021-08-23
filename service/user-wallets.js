@@ -34,7 +34,7 @@ userWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
             }
         }
     );
-}
+};
 
 userWalletSchema.methods.getBalance = function (bnc) {
     balance = bnc.getBalance(this.bnbAddress);
