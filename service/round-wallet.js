@@ -13,18 +13,28 @@ const roundWalletSchema = new mongoose.Schema({
     balance: Decimal128
 });
 
-roundWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
+roundWalletSchema.methods.withdraw = function (bnc, amount, recipientGameId) {
     const asset = "BNB";
     bnc.setPrivateKey(this.privateKey);
+
+    // !!! USER ID
     bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
         (res) => {
             if (res.status === 200) {
                 return true;
             } else {
-                return false;
+                return res.body.text;
             }
         }
     );
+}
+
+roundWalletSchema.methods.getBalance = function (bnc) {
+
+}
+
+roundWalletSchema.methods.deposit = function (bnc, amount, depositor) {
+
 }
 
 const RoundWallet = mongoose.model('RoundWallet', roundWalletSchema);

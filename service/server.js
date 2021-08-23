@@ -2,10 +2,10 @@
 
 // TODO: Update dependences in BC javascript-sdk (dependabot)
 // TODO: Move to faster framework https://habr.com/ru/post/434962/ (restify?)
-// TODO: I can't live without Golang IDE support. MIGRATE TO TYPESCRIPT
+// TODO: MIGRATE TO TYPESCRIPT. Because codebase is growing.
 // TODO: backup system (encrypt data?)
 // TODO: logging, find logger lib and implement
-// TODO: Unit tests for user-wallets.js & round-wallet.js
+// TODO: Unit tests for user-wallets.js & round-wallet.js https://medium.com/devschacht/node-hero-chapter-9-68041507aec
 
 // Define express.js app
 const express = require('express');
@@ -42,13 +42,13 @@ db.once('open', () => {
   app.use(express.urlencoded({
     extended: true
   }));
-  app.use(express.json())
+  app.use(express.json());
 
   app.use('/', (req, res) => {
     res.redirect(301, 'https://github.com/Seasteading/wallets-manager')
   });
 
-  require('./api')(app, db, roundWallet);
+  require('./api')(bnc, roundWallet);
 
   app.listen(port, () => {
     console.log(`wallets-manager running at http://localhost:${port}`);

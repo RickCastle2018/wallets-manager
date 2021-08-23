@@ -1,4 +1,5 @@
-# docker-compose up --build service db
+# DEV: docker-compose up --force-recreate --renew-anon-volumes
+# PROD: docker-compose up -d --build service db
 
 version: '3.7'
 
@@ -13,19 +14,19 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: wallets-manager-password
     volumes:
       - ./db:/data/db
-    ports: # DEV rm in prod
-      - '27017-27019:27017-27019'
+    # ports: # DEV rm in PROD
+    #   - '27017-27019:27017-27019'
 
 
   service:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
-      BLOCKCHAIN_NET: testnet # DEV change to mainnet in prod
+      BLOCKCHAIN_NET: testnet # DEV/TEST change to "mainnet" in PROD
     volumes:
       - ./service:/service
     ports: 
-      - 2311:2311
+      - 127.0.0.1:2311:2311 # 127.0.0.1 IS TO MAKE SERVICE AVAILBLE ONLY ON SERVER, NOT IN INTERNET (because service don't have auth now)
     depends_on:
       - db
     links:
