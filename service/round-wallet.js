@@ -17,10 +17,13 @@ roundWalletSchema.methods.withdraw = function (bnc, amount, recipientGameId) {
     const asset = "BNB";
     bnc.setPrivateKey(this.privateKey);
 
-    // !!! USER ID
-    bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
+    uW = require('./user-wallets');
+    const user = uW.loadByIdInGame(uW.Model, recipientGameId);
+
+    bnc.transfer(this.address, user.address, amount, asset).then(
         (res) => {
             if (res.status === 200) {
+
                 return true;
             } else {
                 return res.body.text;
@@ -29,12 +32,28 @@ roundWalletSchema.methods.withdraw = function (bnc, amount, recipientGameId) {
     );
 }
 
-roundWalletSchema.methods.getBalance = function (bnc) {
+roundWalletSchema.methods.getBalance = function (bnc) {     
 
 }
 
-roundWalletSchema.methods.deposit = function (bnc, amount, depositor) {
-
+roundWalletSchema.methods.deposit = function (bnc, amount, depositorGameId) {
+    uW = require('./user-wallets');
+    const user = uW.loadByIdInGame(uW.Model, depositorGameId);
+    const asset = "BNB";
+    bnc.setPrivateKey(user.privateKey);
+    bnc.transfer(user.address, this.address, amount, asset).then(
+        (res) => {
+            if (res.status === 200) {
+                this.balance = this.balance + amount;
+                this.save();
+                user.balance = user.balance - amount;
+                user.save();
+                return true;
+            } else {
+                return res.body.text;
+            }
+        }
+    );
 }
 
 const RoundWallet = mongoose.model('RoundWallet', roundWalletSchema);

@@ -50,7 +50,7 @@ userWalletSchema.methods.getBalance = function (bnc) {
 const userWalletModel = mongoose.model('userWallet', userWalletSchema);
 
 module.exports = {
-    userWallet: userWalletModel,
+    Model: userWalletModel,
     createNew: function (userId) {
         // create new user-wallet
     },
@@ -61,7 +61,10 @@ module.exports = {
         // I need to subscribe to an transfer updates in every wallet. WSCONNECTIONS = user-wallets count
         // and this function should be running in child process continously
     },
-    loadByIdInGame: function () {
-
+    loadByIdInGame: function (model, userId) {
+        model.findOne({ idInGame: userId }, function (err, userWallet) {
+            if (err) return console.error(err);
+            return userWallet;
+        });
     }
 }

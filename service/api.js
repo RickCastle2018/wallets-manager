@@ -2,7 +2,7 @@
 
 uW = require("./user-wallets");
 
-module.exports = function (bnc) {
+module.exports = function (bnc, roundWallet) {
 
     // round-wallet
     app.get('/round-wallet', (req, res) => {
@@ -42,7 +42,7 @@ module.exports = function (bnc) {
 
     // user-wallets
     app.param('idInGame', function (req, res, next) {
-        userWallet = uW.loadByIdInGame(req.IdInGame);
+        userWallet = uW.loadByIdInGame(uW.Model, req.IdInGame);
         if (user.found == true) {
             req.userWallet = userWallet;
             next();
@@ -73,7 +73,14 @@ module.exports = function (bnc) {
     app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
         const success = req.userWallet.withdraw(bnc, req.body.amount, req.body.to);
         if (success == true) {
-            
+            res.send({
+                successful: success
+            });
+        } else {
+            res.send({
+                successful: false,
+                error: success
+            });
         }
     });
     // app.get('/user-wallets/:idInGame/transactions', (req, res) => {
