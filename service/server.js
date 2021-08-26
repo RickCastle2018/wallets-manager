@@ -6,6 +6,7 @@
 // TODO: backup system (encrypt data?)
 // TODO: logging, find logger lib and implement
 // TODO: Unit tests for user-wallets.js & round-wallet.js https://medium.com/devschacht/node-hero-chapter-9-68041507aec
+// TODO: Protect database files
 
 // Define express.js app
 const express = require('express');
@@ -30,11 +31,12 @@ db.once('open', () => {
   } = require("@binance-chain/javascript-sdk");
   const api = (process.env.BLOCKCHAIN_NET == "mainnet") ? " https://dex.binance.org/" : "https://testnet-dex.binance.org/";
   const bnc = new BncClient(api);
-  bnc.chooseNetwork(process.env.BLOCKCHAIN_NET)
+  bnc.chooseNetwork(process.env.BLOCKCHAIN_NET);
   bnc.initChain();
 
   // init roundWallet
   const rW = require('./round-wallet');
+  console.log("39");
   const roundWallet = rW.load(bnc, rW.Model);
 
   // TODO: run listenUserWalletsRefills
@@ -45,7 +47,7 @@ db.once('open', () => {
   app.use(express.json());
 
   app.use('/', (req, res) => {
-    res.redirect(301, 'https://github.com/Seasteading/wallets-manager')
+    res.redirect(301, 'https://github.com/Seasteading/wallets-manager');
   });
 
   require('./api')(bnc, roundWallet);

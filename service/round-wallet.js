@@ -20,14 +20,12 @@ roundWalletSchema.methods.withdraw = function (bnc, amount, recipientGameId) {
     uW = require('./user-wallets');
     const user = uW.loadByIdInGame(uW.Model, recipientGameId);
 
-    // const amount = 
-
     bnc.transfer(this.address, user.address, amount, asset).then(
         (res) => {
             if (res.status === 200) {
                 this.balance = this.balance - amount;
                 this.save();
-                user.balance = user.balance + amount;
+                user.balance = user.balance + amount - 0.000075;
                 user.save();
                 return true;
             } else {
@@ -35,10 +33,6 @@ roundWalletSchema.methods.withdraw = function (bnc, amount, recipientGameId) {
             }
         }
     );
-};
-
-roundWalletSchema.methods.getBalance = function (bnc) {     
-
 };
 
 roundWalletSchema.methods.deposit = function (bnc, amount, depositorGameId) {
@@ -49,7 +43,7 @@ roundWalletSchema.methods.deposit = function (bnc, amount, depositorGameId) {
     bnc.transfer(user.address, this.address, amount, asset).then(
         (res) => {
             if (res.status === 200) {
-                this.balance = this.balance + amount;
+                this.balance = this.balance + amount - 0.000075;
                 this.save();
                 user.balance = user.balance - amount;
                 user.save();

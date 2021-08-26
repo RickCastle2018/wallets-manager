@@ -36,12 +36,6 @@ userWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
     );
 };
 
-userWalletSchema.methods.getBalance = function (bnc) {
-    balance = bnc.getBalance(this.bnbAddress);
-    // In PROCESS
-    return this.balance;
-}
-
 // TODO: _construct method?
 // userWalletSchema.methods.createDocument(mongoose) = function() {
 //     // …

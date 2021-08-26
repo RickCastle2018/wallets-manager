@@ -1,4 +1,3 @@
-# DEV: docker-compose up --force-recreate --renew-anon-volumes
 # PROD: docker-compose up -d --build service db
 
 version: '3.7'
