@@ -57,26 +57,30 @@ const UserWallet = mongoose.model('UserWallet', userWalletSchema);
 
 function createUserWallet(userIdInGame) {
   let account = bnc.createAccount();
-  let user = new UserWallet({
+  let userWallet = new UserWallet({
     createdDate: new Date(),
     idInGame: userIdInGame,
     address: account.address,
     privateKey: account.privateKey,
     balance: new mongoose.Types.Decimal128("0".toString())
   });
-  user.save();
-  user.created = true;
-  return user;
+  userWallet = userWallet.save().then(
+    (uW) => {
+      uW.created = true;
+      return uW;
+    }
+  );
+  return userWallet;
 }
 
 function loadUserWallet(userIdInGame) {
-  UserWallet.findOne({
+  let userWallet = UserWallet.findOne({
     idInGame: userIdInGame
-  }, function (err, userWallet) {
+  }, function (err, uW) {
     if (err) return console.error(err);
-    userWallet.found = true;
-    return userWallet;
+    return uW;
   });
+  return userWallet;
 }
 
 // round-wallet
@@ -172,9 +176,16 @@ conn.once('open', () => {
   app.use(express.json());
 
   // user-wallets
+  app.post('/user-wallets/:idInGame', (req, res) => {
+    const uW = createUserWallet(req.idInGame);
+    res.send({
+      success: uW.created,
+      blockchain_address: uW.address
+    });
+  });
   app.param('idInGame', function (req, res, next) {
-    const userWallet = uW.loadByIdInGame(uW.Model, req.IdInGame);
-    if (userWallet.found == true) {
+    const userWallet = loadUserWallet(req.IdInGame);
+    if (userWallet) {
       req.userWallet = userWallet;
       next();
     } else {
@@ -187,20 +198,6 @@ conn.once('open', () => {
       blockchain_address: req.userWallet.address,
       balance: req.userWallet.balance
     });
-  });
-  app.post('/user-wallets/:idInGame', (req, res) => {
-    const user = createUserWallet(req.idInGame);
-    if (user.created == true) {
-      res.send({
-        success: user.created,
-        blockchain_address: user.address
-      });
-    } else {
-      res.send({
-        success: user.created,
-        error: "Fuck. Call @nikonovcc immediately!"
-      });
-    }
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
     const success = req.userWallet.withdraw(req.body.amount, req.body.to);
@@ -220,15 +217,18 @@ conn.once('open', () => {
   // });
 
   // round-wallet
-  const roundWallet = loadRoundWallet();
+  app.use('*', (req, res, next) => {
+    req.roundWallet = loadRoundWallet();
+    next();
+  });
   app.get('/round-wallet', (req, res) => {
     res.send({
-      address: roundWallet.address,
-      balance: roundWallet.balance
+      address: req.roundWallet.address,
+      balance: req.roundWallet.balance
     });
   });
   app.post('/round-wallet/withdraw', (req, res) => {
-    const success = roundWallet.withdraw(req.body.amount, req.body.to);
+    const success = req.roundWallet.withdraw(req.body.amount, req.body.to);
     if (success == true) {
       res.send({
         successful: true,
@@ -242,7 +242,7 @@ conn.once('open', () => {
     }
   });
   app.post('/round-wallet/deposit', (req, res) => {
-    const success = roundWallet.deposit(req.body.amount, req.body.from);
+    const success = req.roundWallet.deposit(req.body.amount, req.body.from);
     if (success == true) {
       res.send({
         success: true,

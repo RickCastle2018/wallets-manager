@@ -9,16 +9,14 @@ services:
     container_name: 'wallets-manager-database'
     environment:
       MONGO_INITDB_DATABASE: wallets
-      MONGO_INITDB_ROOT_USERNAME: walletsManagerRoot
-      MONGO_INITDB_ROOT_PASSWORD: walletsManagerPassword
     volumes:
-      - ./db:/data/db
+      - ./db/data:/data/db 
 
   service:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
-      BLOCKCHAIN_NET: testnet # DEV/TEST change to "mainnet" in PROD AND NEVER CHANGE IT IN WORKING SERVICE!!!
+      BLOCKCHAIN_NET: testnet # never change it in production!
     volumes:
       - ./service:/service
     ports:

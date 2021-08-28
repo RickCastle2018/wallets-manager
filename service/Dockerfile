@@ -4,10 +4,12 @@ FROM node:14-alpine
 
 WORKDIR /service
 
-COPY . .
+COPY package*.json .
 
-# FIX: usb module crash. Can't use npm install: --no-optional
+# FIX: usb module crash
 RUN npm install --no-optional
+
+COPY . .
 
 EXPOSE 2311
 CMD [ "node", "server.js" ]
