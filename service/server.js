@@ -1,6 +1,7 @@
 'use strict';
 
-// All the code is in the server.js without fucking modules. I couldn't manage with them.
+// Maintainer: Nikita Nikonov @nikonovcc
+// All the code is in the server.js without fucking modules. I couldn't manage with them. Plus I've written a whole callback-hell
 
 // TODO: Migrate to TypeScript. Because codebase is growing and there's no fucking IDE support for me.
 // TODO: Update dependences (fork) @binance-chain/javascrpt-sdk (merge dependabot)
@@ -38,7 +39,7 @@ const userWalletSchema = new mongoose.Schema({
   balance: mongoose.Decimal128,
   // transactionHistory: [transactionSchema]
 });
-userWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
+userWalletSchema.methods.withdraw = function (amount, recipient, callback) {
   const asset = "BNB";
   bnc.setPrivateKey(this.privateKey);
   this.balance = this.balance - amount;
@@ -46,16 +47,16 @@ userWalletSchema.methods.withdraw = function (bnc, amount, recipient) {
   bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
     (res) => {
       if (res.status === 200) {
-        return true;
+        callback(true);
       } else {
-        return false;
+        callback(false);
       }
     }
   );
 };
 const UserWallet = mongoose.model('UserWallet', userWalletSchema);
 
-function createUserWallet(userIdInGame) {
+function createUserWallet(userIdInGame, callback) {
   let account = bnc.createAccount();
   let userWallet = new UserWallet({
     createdDate: new Date(),
@@ -64,23 +65,21 @@ function createUserWallet(userIdInGame) {
     privateKey: account.privateKey,
     balance: new mongoose.Types.Decimal128("0".toString())
   });
-  userWallet = userWallet.save().then(
+  userWallet.save().then(
     (uW) => {
       uW.created = true;
-      return uW;
+      callback(uW);
     }
   );
-  return userWallet;
 }
 
-function loadUserWallet(userIdInGame) {
-  let userWallet = UserWallet.findOne({
+function loadUserWallet(userIdInGame, callback) {
+  UserWallet.findOne({
     idInGame: userIdInGame
   }, function (err, uW) {
     if (err) return console.error(err);
-    return uW;
+    callback(uW);
   });
-  return userWallet;
 }
 
 // round-wallet
@@ -119,7 +118,7 @@ roundWalletSchema.methods.deposit = function (amount, depositorGameId) {
   bnc.transfer(userWallet.address, this.address, amount, asset).then(
     (res) => {
       if (res.status === 200) {
-        this.balance = this.balance + amount - 0.000075;
+        this.balance = this.balance + amount - 0.000075; // BUG: DECIMAL128 calculations!
         this.save();
         userWallet.balance = userWallet.balance - amount;
         userWallet.save();
@@ -132,29 +131,32 @@ roundWalletSchema.methods.deposit = function (amount, depositorGameId) {
 };
 const RoundWallet = mongoose.model("RoundWallet", roundWalletSchema);
 
-function loadRoundWallet() {
+function loadRoundWallet(callback) {
 
-  const roundWallets = RoundWallet.find(function (err, roundWallets) {
+  RoundWallet.find({
+    asset: 'bnb'
+  }, function (err, roundWallets) {
     if (err) return console.error(err);
-    return roundWallets;
-  });
 
-  if (roundWallets.length < 1) {
-    const account = bnc.createAccount();
-    const rW = new RoundWallet({
-      asset: 'bnb',
-      address: account.address,
-      privateKey: account.privateKey,
-      balance: 0
-    });
-    rW.save(function (err) {
-      if (err) return console.error(err);
-    });
-    return rW;
-  } else {
-    const rW = roundWallets[0];
-    return rW;
-  }
+    if (roundWallets.length < 1) {
+      const account = bnc.createAccount();
+      const rW = new RoundWallet({
+        asset: 'bnb',
+        address: account.address,
+        privateKey: account.privateKey,
+        balance: 0
+      });
+      console.log(rW);
+      rW.save(function (err) {
+        if (err) return console.error(err);
+      });
+      callback(rW);
+    } else {
+      const rW = roundWallets[0];
+      callback(rW);
+    }
+
+  });
 
 }
 
@@ -177,21 +179,23 @@ conn.once('open', () => {
 
   // user-wallets
   app.post('/user-wallets/:idInGame', (req, res) => {
-    const uW = createUserWallet(req.idInGame);
-    res.send({
-      success: uW.created,
-      blockchain_address: uW.address
+    createUserWallet(req.idInGame, (uW) => {
+      res.send({
+        success: uW.created,
+        blockchain_address: uW.address
+      });
     });
   });
   app.param('idInGame', function (req, res, next) {
-    const userWallet = loadUserWallet(req.IdInGame);
-    if (userWallet) {
-      req.userWallet = userWallet;
-      next();
-    } else {
-      // eslint-disable-next-line no-undef
-      next(createError(404, 'What the hell are you trying to use a non-existent user-wallet!?'));
-    }
+    loadUserWallet(req.IdInGame, (uW) => {
+      if (uW != false) {
+        req.userWallet = uW;
+        next();
+      } else {
+        // eslint-disable-next-line no-undef
+        next(createError(404, 'What the hell are you trying to use a non-existent user-wallet!?'));
+      }
+    });
   });
   app.get('/user-wallets/:idInGame', (req, res) => {
     res.send({
@@ -217,9 +221,11 @@ conn.once('open', () => {
   // });
 
   // round-wallet
-  app.use('*', (req, res, next) => {
-    req.roundWallet = loadRoundWallet();
-    next();
+  app.use('/round-wallet*', (req, res, next) => {
+    loadRoundWallet((rW) => {
+      req.roundWallet = rW;
+      next();
+    });
   });
   app.get('/round-wallet', (req, res) => {
     res.send({
@@ -257,7 +263,7 @@ conn.once('open', () => {
   });
 
   app.listen(port, () => {
-    console.log(`wallets-manager running at http://localhost:${port}`);
+    console.log(`wallets-manager running at http://127.0.0.1:${port}`);
   });
 });
 

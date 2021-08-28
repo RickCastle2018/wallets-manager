@@ -17,6 +17,7 @@ services:
     build: ./service
     environment:
       BLOCKCHAIN_NET: testnet # never change it in production!
+      WEBHOOK_LISTENER: http://127.0.0.1/userWalletRefill
     volumes:
       - ./service:/service
     ports:
