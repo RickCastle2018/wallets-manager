@@ -10,7 +10,8 @@ services:
     environment:
       MONGO_INITDB_DATABASE: wallets
     volumes:
-      - ./db/data:/data/db 
+      - ./db/data:/data/db
+    restart: always
 
   service:
     container_name: 'wallets-manager-service'
@@ -24,3 +25,4 @@ services:
       - 127.0.0.1:2311:2311 # 127.0.0.1 to make service availble onl locally
     depends_on:
       - db
+    restart: always

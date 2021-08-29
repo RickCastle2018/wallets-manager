@@ -1,7 +1,7 @@
 {
   "name": "wallets-manager",
   "version": "0.1.0",
-  "description": "",
+  "description": "Seastate Games Wallets-Manager",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

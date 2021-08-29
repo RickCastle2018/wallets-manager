@@ -8,6 +8,7 @@
 // TODO: Use faster web framework https://habr.com/ru/post/434962/ (restify? - almost compatible with express.js)
 // TODO: Write backup daemon! (.sh&CRON?)
 // TODO: Logging debug (find logger lib and implement)
+// TODO: Devide user-wallets model and round-wallet model in modules
 
 // Define express.js app
 const express = require('express');
@@ -23,6 +24,8 @@ const bnc = new BncClient(api);
 bnc.chooseNetwork(process.env.BLOCKCHAIN_NET);
 bnc.initChain();
 
+const asset = "BNB";
+
 // Define wallets models
 const mongoose = require('mongoose');
 
@@ -36,14 +39,16 @@ const userWalletSchema = new mongoose.Schema({
   idInGame: Number,
   address: String,
   privateKey: String,
-  balance: mongoose.Decimal128,
   // transactionHistory: [transactionSchema]
 });
+userWalletSchema.methods.getBalance = function (userIdInGame, callback) {
+  loadUserWallet(userIdInGame, (uW) => {
+    let balances = bnc.getBalance(uW.address);
+    callback(balances.free);
+  });
+};
 userWalletSchema.methods.withdraw = function (amount, recipient, callback) {
-  const asset = "BNB";
   bnc.setPrivateKey(this.privateKey);
-  this.balance = this.balance - amount;
-  this.save();
   bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
     (res) => {
       if (res.status === 200) {
@@ -63,7 +68,6 @@ function createUserWallet(userIdInGame, callback) {
     idInGame: userIdInGame,
     address: account.address,
     privateKey: account.privateKey,
-    balance: new mongoose.Types.Decimal128("0".toString())
   });
   userWallet.save().then(
     (uW) => {
@@ -87,64 +91,58 @@ const roundWalletSchema = new mongoose.Schema({
   asset: String,
   address: String,
   privateKey: String,
-  balance: mongoose.Decimal128
 });
+roundWalletSchema.methods.getBalance = function (callback) {
+  loadRoundWallet((rW) => {
+    let balances = bnc.getBalance(rW.address);
+    callback(balances.free);
+  });
+};
 roundWalletSchema.methods.withdraw = function (amount, recipientGameId) {
-  const asset = "BNB";
   bnc.setPrivateKey(this.privateKey);
 
-  const userWallet = loadUserWallet(recipientGameId);
-
-  bnc.transfer(this.address, userWallet.address, amount, asset).then(
-    (res) => {
-      if (res.status === 200) {
-        this.balance = this.balance - amount;
-        this.save();
-        userWallet.balance = userWallet.balance + amount - 0.000075;
-        userWallet.save();
-        return true;
-      } else {
-        return res.body.text;
+  loadUserWallet(recipientGameId, (uW) => {
+    bnc.transfer(this.address, uW.address, amount, asset).then(
+      (res) => {
+        if (res.status === 200) {
+          return true;
+        } else {
+          return res.body.text;
+        }
       }
-    }
-  );
+    );
+  });
 };
 roundWalletSchema.methods.deposit = function (amount, depositorGameId) {
-  const userWallet = loadUserWallet(depositorGameId);
+  loadUserWallet(depositorGameId, (uW) => {
+    bnc.setPrivateKey(uW.privateKey);
 
-  const asset = "BNB";
-  bnc.setPrivateKey(userWallet.privateKey);
-
-  bnc.transfer(userWallet.address, this.address, amount, asset).then(
-    (res) => {
-      if (res.status === 200) {
-        this.balance = this.balance + amount - 0.000075; // BUG: DECIMAL128 calculations!
-        this.save();
-        userWallet.balance = userWallet.balance - amount;
-        userWallet.save();
-        return true;
-      } else {
-        return res.body.text;
+    bnc.transfer(uW.address, this.address, amount, asset).then(
+      (res) => {
+        if (res.status === 200) {
+          return true;
+        } else {
+          return res.body.text;
+        }
       }
-    }
-  );
+    );
+  });
 };
 const RoundWallet = mongoose.model("RoundWallet", roundWalletSchema);
 
 function loadRoundWallet(callback) {
 
   RoundWallet.find({
-    asset: 'bnb'
+    asset: asset
   }, function (err, roundWallets) {
     if (err) return console.error(err);
 
     if (roundWallets.length < 1) {
       const account = bnc.createAccount();
       const rW = new RoundWallet({
-        asset: 'bnb',
+        asset: asset,
         address: account.address,
-        privateKey: account.privateKey,
-        balance: 0
+        privateKey: account.privateKey
       });
       console.log(rW);
       rW.save(function (err) {
@@ -192,15 +190,16 @@ conn.once('open', () => {
         req.userWallet = uW;
         next();
       } else {
-        // eslint-disable-next-line no-undef
-        next(createError(404, 'What the hell are you trying to use a non-existent user-wallet!?'));
+        res.status(404).send(404, 'What the hell are you trying to use a non-existent user-wallet!?');
       }
     });
   });
   app.get('/user-wallets/:idInGame', (req, res) => {
-    res.send({
-      blockchain_address: req.userWallet.address,
-      balance: req.userWallet.balance
+    req.userWallet.getBalance((b) => {
+      res.send({
+        blockchain_address: req.userWallet.address,
+        balance: b
+      });
     });
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
@@ -228,38 +227,40 @@ conn.once('open', () => {
     });
   });
   app.get('/round-wallet', (req, res) => {
-    res.send({
-      address: req.roundWallet.address,
-      balance: req.roundWallet.balance
+    req.roundWallet.getBalance((b) => {
+      res.send({
+        address: req.roundWallet.address,
+        balance: b
+      });
     });
   });
   app.post('/round-wallet/withdraw', (req, res) => {
-    const success = req.roundWallet.withdraw(req.body.amount, req.body.to);
-    if (success == true) {
-      res.send({
-        successful: true,
-        locked: req.body.amount
-      });
-    } else {
-      res.send({
-        successful: false,
-        error: success
-      });
-    }
+    req.roundWallet.withdraw(req.body.amount, req.body.to, (success) => {
+      if (success == true) {
+        res.send({
+          successful: true,
+        });
+      } else {
+        res.send({
+          successful: false,
+          error: success
+        });
+      }
+    });
   });
   app.post('/round-wallet/deposit', (req, res) => {
-    const success = req.roundWallet.deposit(req.body.amount, req.body.from);
-    if (success == true) {
-      res.send({
-        success: true,
-        locked: req.body.amount
-      });
-    } else {
-      res.send({
-        success: false,
-        error: success
-      });
-    }
+    req.roundWallet.deposit(req.body.amount, req.body.from, (success) => {
+      if (success == true) {
+        res.send({
+          success: true,
+        });
+      } else {
+        res.send({
+          success: false,
+          error: success
+        });
+      }
+    });
   });
 
   app.listen(port, () => {
@@ -267,4 +268,10 @@ conn.once('open', () => {
   });
 });
 
-// TODO: listenUserWalletsRefills !!! corutine?
+const {
+  fork
+} = require('child_process');
+const message = fork('userWalletsRefills.js');
+message.on('message', (msg) => {
+  console.log('userWalletRefills: ', msg);
+});
