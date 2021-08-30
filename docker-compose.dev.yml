@@ -1,4 +1,5 @@
-# docker-compose up -d
+# docker-compose up -f docker-compose.dev.yml --build service
+# After running don't forget to make docker image prune, because there will be extra unused images
 
 version: '3.7'
 
@@ -11,18 +12,18 @@ services:
       MONGO_INITDB_DATABASE: wallets
     volumes:
       - ./db/data:/data/db
-    restart: always
+    ports:
+      - '27017-27019:27017-27019'
 
   service:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
-      BLOCKCHAIN_NET: testnet # never change it in production!
-      WEBHOOK_LISTENER: http://127.0.0.1:80/userWalletRefill
+      BLOCKCHAIN_NET: testnet
+      WEBHOOK_LISTENER: http://127.0.0.1:8080/userWalletRefill
     volumes:
       - ./service:/service
     ports:
-      - 127.0.0.1:2311:2311 # 127.0.0.1 to make service availble onl locally
+      - 2311:2311
     depends_on:
       - db
-    restart: always

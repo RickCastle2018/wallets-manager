@@ -1,7 +1,6 @@
 'use strict';
 
 // Maintainer: Nikita Nikonov @nikonovcc
-// All the code is in the server.js without fucking modules. I couldn't manage with them. Plus I've written a whole callback-hell
 
 // TODO: Migrate to TypeScript. Because codebase is growing and there's no fucking IDE support for me.
 // TODO: Update dependences (fork) @binance-chain/javascrpt-sdk (merge dependabot)
@@ -9,6 +8,7 @@
 // TODO: Write backup daemon! (.sh&CRON?)
 // TODO: Logging debug (find logger lib and implement)
 // TODO: Devide user-wallets model and round-wallet model in modules
+// TODO: Write unit tests
 
 // Define express.js app
 const express = require('express');
@@ -41,6 +41,9 @@ const userWalletSchema = new mongoose.Schema({
   privateKey: String,
   // transactionHistory: [transactionSchema]
 });
+// TODO: Microtransactions
+// userWalletSchema.methods.pay = function (…, …, callback) {
+// };
 userWalletSchema.methods.getBalance = function (userIdInGame, callback) {
   loadUserWallet(userIdInGame, (uW) => {
     let balances = bnc.getBalance(uW.address);
@@ -271,7 +274,7 @@ conn.once('open', () => {
 const {
   fork
 } = require('child_process');
-const message = fork('userWalletsRefills.js');
+const message = fork('userWalletsRefills.js', );
 message.on('message', (msg) => {
   console.log('userWalletRefills: ', msg);
 });
