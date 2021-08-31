@@ -23,7 +23,6 @@
     "express": "^4.17.1",
     "mongodb": "^4.1.0",
     "mongoose": "^5.13.7",
-    "websocket": "^1.0.34",
     "ws": "^8.2.1"
   },
   "devDependencies": {

@@ -4,15 +4,13 @@ FROM node:14-alpine
 
 WORKDIR /service
 
-# Install python/pip
-ENV PYTHONUNBUFFERED=1
-RUN apk add --update --no-cache python2 && ln -sf python2 /usr/bin/python
-RUN python -m ensurepip
-RUN pip install --no-cache --upgrade pip setuptools
-
-RUN apk add --update make
-RUN apk add gcc 
-RUN apk add g++
+# ENV PYTHONUNBUFFERED=1
+# RUN apk add --update --no-cache python2 && ln -sf python2 /usr/bin/python
+# RUN python -m ensurepip
+# RUN pip install --no-cache --upgrade pip setuptools
+# RUN apk add --update make
+# RUN apk add gcc 
+# RUN apk add g++
 
 COPY package.json .
 COPY package-lock.json .

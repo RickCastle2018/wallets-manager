@@ -203,20 +203,19 @@ conn.once('open', () => {
 
   // user-wallets
   app.put('/user-wallets/:idInGame', (req, res) => {
-    createUserWallet(req.idInGame, (uW) => {
+    createUserWallet(req.params.idInGame, (uW) => {
       res.send({
         blockchain_address: uW.address
       });
     });
   });
-  // BUG: the same user returned always
-  app.param('idInGame', function (req, res, next) {
-    loadUserWallet(req.IdInGame, (uW) => {
+  app.use('/user-wallets/:idInGame*', function (req, res, next) {
+    loadUserWallet(req.params.idInGame, (uW) => {
       if (uW) {
         req.userWallet = uW;
         next();
       } else {
-        return res.status(404).send();
+        return res.status(404).send("user-wallet not found");
       }
     });
   });
