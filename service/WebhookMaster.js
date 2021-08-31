@@ -39,8 +39,6 @@ MongoClient.connect('mongodb://db:27017/wallets', (err, db) => {
     } = require('ws');
     const conn = new WebSocket(api);
     conn.on('open', function (evt) {
-        console.log(evt.stream);
-
         userWallets.forEach(uW => {
             conn.send(JSON.stringify({
                 method: "subscribe",
