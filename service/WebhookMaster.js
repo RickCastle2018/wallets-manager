@@ -12,8 +12,8 @@ const api = (blockchainNet == "mainnet") ? "wss://dex.binance.org/api/ws" : "wss
 const webhookListener = process.argv[3];
 
 // Connect to Mongo
-const mongo = require('mongodb').MongoClient;
-mongo.connect('mongodb://db:27017/wallets', (err, db) => {
+const MongoClient = require('mongodb').MongoClient;
+MongoClient.connect('mongodb://db:27017/wallets', (err, db) => {
     if (err) return console.log(err);
 
     // TODO: load from backup and check all transactions after wake up
@@ -24,7 +24,8 @@ mongo.connect('mongodb://db:27017/wallets', (err, db) => {
     });
 
     // Get all wallets
-    const collection = db.collection('userWallet');
+    // BUG: TypeError: db.collection is not a function
+    const collection = db.collection('userwallets');
     collection.find({}, (err, userWallets) => {
         if (err) return console.log(err);
 

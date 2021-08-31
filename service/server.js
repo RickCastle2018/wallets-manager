@@ -223,7 +223,7 @@ conn.once('open', () => {
     });
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
-    req.userWallet.withdraw(req.body.amount, req.body.to, (err) => {
+    req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
       if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
@@ -245,13 +245,13 @@ conn.once('open', () => {
     });
   });
   app.post('/round-wallet/withdraw', (req, res) => {
-    req.roundWallet.withdraw(req.body.amount, req.body.to, (err) => {
+    req.roundWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
       if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
   });
   app.post('/round-wallet/deposit', (req, res) => {
-    req.roundWallet.deposit(req.body.amount, req.body.from, (err) => {
+    req.roundWallet.deposit(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
       if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
