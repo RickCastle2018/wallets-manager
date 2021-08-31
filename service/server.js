@@ -5,8 +5,9 @@
 // TODO: Use faster web framework https://habr.com/ru/post/434962/ (restify? - almost compatible with express.js)
 // TODO: Write backup daemon! (.sh&CRON?)
 // TODO: Logging, debug (find logger lib and implement)
-// TODO: Devide user-wallets model and round-wallet model in modules
+// TODO: Devide user-wallets model and round-wallet model in modules (and their methods, such as loadRoundWallet)
 // TODO: Write unit testss
+// TODO: Redis to store queue of requests to wallets-manager
 
 // Define express.js app
 const express = require('express');
@@ -24,13 +25,20 @@ bnc.initChain();
 const asset = "BNB";
 
 // Start WebhookMaster
-// const {
-//   fork
-// } = require('child_process');
-// const wm = fork('WebhookMaster.js', process.env.BLOCKCHAIN_NET);
-// function monitorTransaction() { // to pass the transaction to the WebhookMaster
-//   // …
-// }
+const {
+  fork
+} = require('child_process');
+const args = [process.env.BLOCKCHAIN_NET, process.env.WEBHOOK_LISTENER];
+const wm = fork('WebhookMaster.js', args);
+function monitorTransaction(userId, transactionId, transactionHash, transactionType) { // to pass the transaction to the WebhookMaster
+  // worth it to load user-wallet?
+  wm.send({
+    userId: userId,
+    hash: transactionHash,
+    id: transactionId,
+    type: transactionType
+  });
+}
 
 // Define wallets models
 const mongoose = require('mongoose');
@@ -49,12 +57,17 @@ userWalletSchema.methods.getBalance = function (userIdInGame, callback) {
     callback(balances.free);
   });
 };
-userWalletSchema.methods.withdraw = function (amount, recipient, callback) {
+userWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipient, callback) {
+  const eventType = "withdraw";
+
   bnc.setPrivateKey(this.privateKey);
   bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
     (res) => {
       if (res.status !== 200) {
         callback(res.body.text);
+      } else {
+        const blockchainTransactionHash = res.result[0].hash;
+        monitorTransaction(this.idInGame, gameTransactionId, blockchainTransactionHash, eventType);
       }
     }
   );
@@ -100,7 +113,8 @@ roundWalletSchema.methods.getBalance = function (callback) {
     callback(balances.free);
   });
 };
-roundWalletSchema.methods.withdraw = function (amount, recipientGameId, callback) {
+roundWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId, callback) {
+  const eventType = "exit";
   bnc.setPrivateKey(this.privateKey);
 
   loadUserWallet(recipientGameId, (uW) => {
@@ -108,12 +122,17 @@ roundWalletSchema.methods.withdraw = function (amount, recipientGameId, callback
       (res) => {
         if (res.status !== 200) {
           callback(res.body.text);
+        } else {
+          const blockchainTransactionHash = res.result[0].hash;
+          monitorTransaction(uW.idInGame, gameTransactionId, blockchainTransactionHash, eventType);
         }
       }
     );
   });
 };
-roundWalletSchema.methods.deposit = function (amount, depositorGameId, callback) {
+roundWalletSchema.methods.deposit = function (gameTransactionId, amount, depositorGameId, callback) {
+  const eventType = "deposit";
+
   loadUserWallet(depositorGameId, (uW) => {
     bnc.setPrivateKey(uW.privateKey);
 
@@ -121,6 +140,9 @@ roundWalletSchema.methods.deposit = function (amount, depositorGameId, callback)
       (res) => {
         if (res.status !== 200) {
           callback(res.body.text);
+        } else {
+          const blockchainTransactionHash = res.result[0].hash;
+          monitorTransaction(uW.idInGame, gameTransactionId, blockchainTransactionHash, eventType);
         }
       }
     );
@@ -184,7 +206,7 @@ conn.once('open', () => {
   // BUG: the same user returned always
   app.param('idInGame', function (req, res, next) {
     loadUserWallet(req.IdInGame, (uW) => {
-      if (uW != false) {
+      if (uW) {
         req.userWallet = uW;
         next();
       } else {
@@ -202,7 +224,7 @@ conn.once('open', () => {
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
     req.userWallet.withdraw(req.body.amount, req.body.to, (err) => {
-      if (err == undefined) res.status(500).send(err);
+      if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
   });
@@ -224,13 +246,13 @@ conn.once('open', () => {
   });
   app.post('/round-wallet/withdraw', (req, res) => {
     req.roundWallet.withdraw(req.body.amount, req.body.to, (err) => {
-      if (err == undefined) res.status(500).send(err);
+      if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
   });
   app.post('/round-wallet/deposit', (req, res) => {
     req.roundWallet.deposit(req.body.amount, req.body.from, (err) => {
-      if (err == undefined) res.status(500).send(err);
+      if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
   });
