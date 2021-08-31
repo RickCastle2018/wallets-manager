@@ -1,14 +1,12 @@
 'use strict';
 
-// Maintainer: Nikita Nikonov @nikonovcc
-
-// TODO: Migrate to TypeScript. Because codebase is growing and there's no fucking IDE support for me.
+// TODO: Migrate to TypeScript. Because codebase is growing and there's not enough fucking IDE support for me.
 // TODO: Update dependences (fork) @binance-chain/javascrpt-sdk (merge dependabot)
 // TODO: Use faster web framework https://habr.com/ru/post/434962/ (restify? - almost compatible with express.js)
 // TODO: Write backup daemon! (.sh&CRON?)
-// TODO: Logging debug (find logger lib and implement)
+// TODO: Logging, debug (find logger lib and implement)
 // TODO: Devide user-wallets model and round-wallet model in modules
-// TODO: Write unit tests
+// TODO: Write unit testss
 
 // Define express.js app
 const express = require('express');
@@ -23,27 +21,28 @@ const api = (process.env.BLOCKCHAIN_NET == "mainnet") ? " https://dex.binance.or
 const bnc = new BncClient(api);
 bnc.chooseNetwork(process.env.BLOCKCHAIN_NET);
 bnc.initChain();
-
 const asset = "BNB";
+
+// Start WebhookMaster
+// const {
+//   fork
+// } = require('child_process');
+// const wm = fork('WebhookMaster.js', process.env.BLOCKCHAIN_NET);
+// function monitorTransaction() { // to pass the transaction to the WebhookMaster
+//   // …
+// }
 
 // Define wallets models
 const mongoose = require('mongoose');
 
 // user-wallets
-// TODO: implement transaction history (approve transaction data)
-// const transactionSchema = new mongoose.Schema({
-//     // …
-// });
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
   idInGame: Number,
   address: String,
   privateKey: String,
-  // transactionHistory: [transactionSchema]
+  latestTransaction: String
 });
-// TODO: Microtransactions
-// userWalletSchema.methods.pay = function (…, …, callback) {
-// };
 userWalletSchema.methods.getBalance = function (userIdInGame, callback) {
   loadUserWallet(userIdInGame, (uW) => {
     let balances = bnc.getBalance(uW.address);
@@ -54,10 +53,8 @@ userWalletSchema.methods.withdraw = function (amount, recipient, callback) {
   bnc.setPrivateKey(this.privateKey);
   bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
     (res) => {
-      if (res.status === 200) {
-        callback(true);
-      } else {
-        callback(false);
+      if (res.status !== 200) {
+        callback(res.body.text);
       }
     }
   );
@@ -71,6 +68,7 @@ function createUserWallet(userIdInGame, callback) {
     idInGame: userIdInGame,
     address: account.address,
     privateKey: account.privateKey,
+    latestTransaction: ""
   });
   userWallet.save().then(
     (uW) => {
@@ -94,6 +92,7 @@ const roundWalletSchema = new mongoose.Schema({
   asset: String,
   address: String,
   privateKey: String,
+  latestTransaction: String
 });
 roundWalletSchema.methods.getBalance = function (callback) {
   loadRoundWallet((rW) => {
@@ -101,31 +100,27 @@ roundWalletSchema.methods.getBalance = function (callback) {
     callback(balances.free);
   });
 };
-roundWalletSchema.methods.withdraw = function (amount, recipientGameId) {
+roundWalletSchema.methods.withdraw = function (amount, recipientGameId, callback) {
   bnc.setPrivateKey(this.privateKey);
 
   loadUserWallet(recipientGameId, (uW) => {
     bnc.transfer(this.address, uW.address, amount, asset).then(
       (res) => {
-        if (res.status === 200) {
-          return true;
-        } else {
-          return res.body.text;
+        if (res.status !== 200) {
+          callback(res.body.text);
         }
       }
     );
   });
 };
-roundWalletSchema.methods.deposit = function (amount, depositorGameId) {
+roundWalletSchema.methods.deposit = function (amount, depositorGameId, callback) {
   loadUserWallet(depositorGameId, (uW) => {
     bnc.setPrivateKey(uW.privateKey);
 
     bnc.transfer(uW.address, this.address, amount, asset).then(
       (res) => {
-        if (res.status === 200) {
-          return true;
-        } else {
-          return res.body.text;
+        if (res.status !== 200) {
+          callback(res.body.text);
         }
       }
     );
@@ -145,9 +140,9 @@ function loadRoundWallet(callback) {
       const rW = new RoundWallet({
         asset: asset,
         address: account.address,
-        privateKey: account.privateKey
+        privateKey: account.privateKey,
+        latestTransaction: "",
       });
-      console.log(rW);
       rW.save(function (err) {
         if (err) return console.error(err);
       });
@@ -179,21 +174,21 @@ conn.once('open', () => {
   app.use(express.json());
 
   // user-wallets
-  app.post('/user-wallets/:idInGame', (req, res) => {
+  app.put('/user-wallets/:idInGame', (req, res) => {
     createUserWallet(req.idInGame, (uW) => {
       res.send({
-        success: uW.created,
         blockchain_address: uW.address
       });
     });
   });
+  // BUG: the same user returned always
   app.param('idInGame', function (req, res, next) {
     loadUserWallet(req.IdInGame, (uW) => {
       if (uW != false) {
         req.userWallet = uW;
         next();
       } else {
-        res.status(404).send(404, 'What the hell are you trying to use a non-existent user-wallet!?');
+        res.status(404).send();
       }
     });
   });
@@ -206,21 +201,11 @@ conn.once('open', () => {
     });
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
-    const success = req.userWallet.withdraw(req.body.amount, req.body.to);
-    if (success == true) {
-      res.send({
-        successful: success
-      });
-    } else {
-      res.send({
-        successful: false,
-        error: success
-      });
-    }
+    req.userWallet.withdraw(req.body.amount, req.body.to, (err) => {
+      if (err == undefined) res.status(500).send(err);
+      res.status(200).send();
+    });
   });
-  // app.get('/user-wallets/:idInGame/transactions', (req, res) => {
-  // TODO: after beta
-  // });
 
   // round-wallet
   app.use('/round-wallet*', (req, res, next) => {
@@ -238,43 +223,19 @@ conn.once('open', () => {
     });
   });
   app.post('/round-wallet/withdraw', (req, res) => {
-    req.roundWallet.withdraw(req.body.amount, req.body.to, (success) => {
-      if (success == true) {
-        res.send({
-          successful: true,
-        });
-      } else {
-        res.send({
-          successful: false,
-          error: success
-        });
-      }
+    req.roundWallet.withdraw(req.body.amount, req.body.to, (err) => {
+      if (err == undefined) res.status(500).send(err);
+      res.status(200).send();
     });
   });
   app.post('/round-wallet/deposit', (req, res) => {
-    req.roundWallet.deposit(req.body.amount, req.body.from, (success) => {
-      if (success == true) {
-        res.send({
-          success: true,
-        });
-      } else {
-        res.send({
-          success: false,
-          error: success
-        });
-      }
+    req.roundWallet.deposit(req.body.amount, req.body.from, (err) => {
+      if (err == undefined) res.status(500).send(err);
+      res.status(200).send();
     });
   });
 
   app.listen(port, () => {
     console.log(`wallets-manager running at http://127.0.0.1:${port}`);
   });
-});
-
-const {
-  fork
-} = require('child_process');
-const message = fork('userWalletsRefills.js', );
-message.on('message', (msg) => {
-  console.log('userWalletRefills: ', msg);
 });
