@@ -8,7 +8,7 @@ WORKDIR /service
 ENV PYTHONUNBUFFERED=1
 RUN apk add --update --no-cache python2 && ln -sf python2 /usr/bin/python
 RUN python -m ensurepip
-RUN pip3 install --no-cache --upgrade pip setuptools
+RUN pip install --no-cache --upgrade pip setuptools
 
 RUN apk add --update make
 RUN apk add gcc 
