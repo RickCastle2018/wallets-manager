@@ -89,7 +89,6 @@ function createUserWallet(userIdInGame, callback) {
   });
   userWallet.save().then(
     (uW) => {
-      uW.created = true;
       callback(uW);
     }
   );
@@ -98,7 +97,7 @@ function createUserWallet(userIdInGame, callback) {
 function loadUserWallet(userIdInGame, callback) {
   UserWallet.findOne({
     idInGame: userIdInGame
-  }, function (err, uW) {
+  }, (err, uW) => {
     if (err) return console.error(err);
     callback(uW);
   });
