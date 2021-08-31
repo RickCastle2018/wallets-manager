@@ -11,6 +11,8 @@ RUN python3 -m ensurepip
 RUN pip3 install --no-cache --upgrade pip setuptools
 
 RUN apk add --update make
+RUN apk add gcc 
+RUN apk add g++
 
 COPY package.json .
 COPY package-lock.json .
