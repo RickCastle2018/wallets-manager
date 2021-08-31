@@ -7,7 +7,7 @@
 // TODO: Logging, debug (find logger lib and implement)
 // TODO: Devide user-wallets model and round-wallet model in modules (and their methods, such as loadRoundWallet)
 // TODO: Write unit testss
-// TODO: Redis to store queue of requests to wallets-manager
+// TODO: Redis to store chache and Kafka to store queue of requests to wallets-manager
 
 // Define express.js app
 const express = require('express');
