@@ -4,7 +4,7 @@ FROM node:14-alpine
 
 WORKDIR /service
 
-COPY package*.json .
+COPY package.json .
 
 # FIX: usb module crash
 RUN npm install --no-optional

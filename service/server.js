@@ -30,6 +30,7 @@ const {
 } = require('child_process');
 const args = [process.env.BLOCKCHAIN_NET, process.env.WEBHOOK_LISTENER];
 const wm = fork('WebhookMaster.js', args);
+
 function monitorTransaction(userId, transactionId, transactionHash, transactionType) { // to pass the transaction to the WebhookMaster
   // worth it to load user-wallet?
   wm.send({
@@ -51,11 +52,14 @@ const userWalletSchema = new mongoose.Schema({
   privateKey: String,
   latestTransaction: String
 });
-userWalletSchema.methods.getBalance = function (userIdInGame, callback) {
-  loadUserWallet(userIdInGame, (uW) => {
-    let balances = bnc.getBalance(uW.address);
-    callback(balances.free);
-  });
+userWalletSchema.methods.getBalance = function (callback) {
+  bnc.getBalance(this.address).then((balances) => {
+    if (balances.length < 1) {
+      callback(0);
+    } else {
+      callback(balances.free);
+    }
+  }).catch(err => console.error(err));
 };
 userWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipient, callback) {
   const eventType = "withdraw";
@@ -108,10 +112,13 @@ const roundWalletSchema = new mongoose.Schema({
   latestTransaction: String
 });
 roundWalletSchema.methods.getBalance = function (callback) {
-  loadRoundWallet((rW) => {
-    let balances = bnc.getBalance(rW.address);
-    callback(balances.free);
-  });
+  bnc.getBalance(this.address).then((balances) => {
+    if (balances.length < 1) {
+      callback(0);
+    } else {
+      callback(balances.free);
+    }
+  }).catch(err => console.error(err));
 };
 roundWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId, callback) {
   const eventType = "exit";
@@ -210,7 +217,7 @@ conn.once('open', () => {
         req.userWallet = uW;
         next();
       } else {
-        res.status(404).send();
+        return res.status(404).send();
       }
     });
   });

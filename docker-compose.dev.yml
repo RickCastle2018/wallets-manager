@@ -1,4 +1,4 @@
-# docker-compose -f docker-compose.dev.yml --build service
+# docker-compose up --build service
 # After running don't forget to make docker image prune, because there will be extra unused images
 
 version: '3.7'
