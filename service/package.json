@@ -1,6 +1,6 @@
 {
   "name": "wallets-manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Seastate Games Wallets-Manager",
   "main": "server.js",
   "scripts": {
@@ -18,16 +18,17 @@
   },
   "homepage": "https://github.com/Seasteading/wallets-manager#readme",
   "dependencies": {
-    "@binance-chain/javascript-sdk": "^4.1.1",
     "axios": "^0.21.1",
+    "ethereumjs-common": "^1.5.2",
+    "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
     "mongodb": "^4.1.0",
     "mongoose": "^5.13.7",
+    "web3": "^1.5.2",
     "ws": "^8.2.1"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
-    "eslint-config-google": "^0.14.0",
-    "jshint": "^2.13.1"
+    "eslint-config-google": "^0.14.0"
   }
 }

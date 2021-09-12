@@ -1,49 +1,81 @@
 'use strict';
 
-// TODO: Migrate to TypeScript. Because codebase is growing and there's not enough fucking IDE support for me.
-// TODO: Update dependences (fork) @binance-chain/javascrpt-sdk (merge dependabot)
-// TODO: Use faster web framework https://habr.com/ru/post/434962/ (restify? - almost compatible with express.js)
-// TODO: Write backup daemon! (.sh&CRON?)
-// TODO: Logging, debug (find logger lib and implement)
-// TODO: Devide user-wallets model and round-wallet model in modules (and their methods, such as loadRoundWallet)
-// TODO: Write unit testss
-// TODO: Redis to store chache and Kafka to store queue of requests to wallets-manager
+// TODO: Write backuper.sh
+// TODO: MAKEFILE!! 2 docker-composes and make up-dev
 
-// Define express.js app
-const express = require('express');
-const app = express();
-const port = 2311;
-
-// Connect to Binance Chain
 const {
-  BncClient
-} = require("@binance-chain/javascript-sdk");
-const api = (process.env.BLOCKCHAIN_NET == "mainnet") ? " https://dex.binance.org/" : "https://testnet-dex.binance.org/";
-const bnc = new BncClient(api);
-bnc.chooseNetwork(process.env.BLOCKCHAIN_NET);
-bnc.initChain();
-const asset = "BNB";
-
-// Start WebhookMaster
+  Common
+} = require('ethereumjs-common');
+const Tx = require('ethereumjs-tx').Transaction;
 const {
   fork
 } = require('child_process');
-const args = [process.env.BLOCKCHAIN_NET, process.env.WEBHOOK_LISTENER];
-const wm = fork('WebhookMaster.js', args);
+const Web3 = require('web3');
+const axios = require('axios');
+const mongoose = require('mongoose');
+const express = require('express');
+const fs = require('fs');
 
-function monitorTransaction(userId, transactionId, transactionHash, transactionType) { // to pass the transaction to the WebhookMaster
-  // worth it to load user-wallet?
-  wm.send({
-    userId: userId,
-    hash: transactionHash,
-    id: transactionId,
-    type: transactionType
+// Start WebhookMaster
+const args = [process.env.BLOCKCHAIN_NET, process.env.WEBHOOK_LISTENER];
+const rl = fork('WebhookMaster.js', args);
+rl.on('close', (code) => {
+  console.log('Webhook Master Exited with code ' + code);
+});
+
+// Connect to Binance Smart Chain and coins' smart contract
+const api = (process.env.BLOCKCHAIN_NET == 'mainnet') ? 'https://bsc-dataseed.binance.org:443' : 'https://data-seed-prebsc-1-s1.binance.org:8545';
+const web3 = new Web3(api);
+
+// FIXME: !!! SIMPLETOKEN CHANGE
+const abi = fs.readFileSync('./coin/simpletoken-abi.json', 'utf8');
+const contract = web3.eth.Contract(abi);
+const oglc = contract.at(process.env.COIN_CONTRACT);
+
+// Setup Transactions Sender
+const blockchainId = (process.env.BLOCKCHAIN_NET == 'mainnet') ? 56 : 97;
+const common = Common.forCustomChain('mainnet', {
+  networkId: blockchainId,
+  chainId: blockchainId
+}, 'petersburg');
+
+function transfer(from, to, amount, transactionId) { // from is userWalletModel or gameWalletModel
+
+  const txObject = {
+    from: from.address,
+    to: to,
+    value: web3.utils.toHex(web3.utils.toWei(amount, 'ether')),
+  };
+
+  const tx = new Tx(txObject, {
+    common
   });
+  tx.sign(from.privateKey);
+
+  const serializedTrans = tx.serialize();
+  const raw = '0x' + serializedTrans.toString('hex');
+
+  web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
+    // tell Refills Listener to ignore this transaction, because it caused by Game
+    rl.send(hash);
+  }).on('confirmation', (confNumber, receipt, latestBlockHash) => {
+    const webhook = {
+      user_id: ('idInGame' in from) ? from.idInGame : loadUserId,
+      type: string,
+      transaction_id: int,
+      status: 'success' / 'fail',
+    };
+
+    axios({
+      method: 'post',
+      url: process.env.WEBHOOK_LISTENER,
+      data: webhook
+    });
+  });
+
 }
 
 // Define wallets models
-const mongoose = require('mongoose');
-
 // user-wallets
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -62,7 +94,7 @@ userWalletSchema.methods.getBalance = function (callback) {
   }).catch(err => console.error(err));
 };
 userWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipient, callback) {
-  const eventType = "withdraw";
+  const eventType = 'withdraw';
 
   bnc.setPrivateKey(this.privateKey);
   bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
@@ -85,7 +117,7 @@ function createUserWallet(userIdInGame, callback) {
     idInGame: userIdInGame,
     address: account.address,
     privateKey: account.privateKey,
-    latestTransaction: ""
+    latestTransaction: ''
   });
   userWallet.save().then(
     (uW) => {
@@ -103,14 +135,14 @@ function loadUserWallet(userIdInGame, callback) {
   });
 }
 
-// round-wallet
-const roundWalletSchema = new mongoose.Schema({
+// game-wallet
+const gameWalletSchema = new mongoose.Schema({
   asset: String,
   address: String,
   privateKey: String,
   latestTransaction: String
 });
-roundWalletSchema.methods.getBalance = function (callback) {
+gameWalletSchema.methods.getBalance = function (callback) {
   bnc.getBalance(this.address).then((balances) => {
     if (balances.length < 1) {
       callback(0);
@@ -119,8 +151,8 @@ roundWalletSchema.methods.getBalance = function (callback) {
     }
   }).catch(err => console.error(err));
 };
-roundWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId, callback) {
-  const eventType = "exit";
+gameWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId, callback) {
+  const eventType = 'exit';
   bnc.setPrivateKey(this.privateKey);
 
   loadUserWallet(recipientGameId, (uW) => {
@@ -136,8 +168,8 @@ roundWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipi
     );
   });
 };
-roundWalletSchema.methods.deposit = function (gameTransactionId, amount, depositorGameId, callback) {
-  const eventType = "deposit";
+gameWalletSchema.methods.deposit = function (gameTransactionId, amount, depositorGameId, callback) {
+  const eventType = 'deposit';
 
   loadUserWallet(depositorGameId, (uW) => {
     bnc.setPrivateKey(uW.privateKey);
@@ -154,30 +186,30 @@ roundWalletSchema.methods.deposit = function (gameTransactionId, amount, deposit
     );
   });
 };
-const RoundWallet = mongoose.model("RoundWallet", roundWalletSchema);
+const GameWallet = mongoose.model('GameWallet', gameWalletSchema);
 
-function loadRoundWallet(callback) {
+function loadGameWallet(callback) {
 
-  RoundWallet.find({
+  GameWallet.find({
     asset: asset
-  }, function (err, roundWallets) {
+  }, function (err, gameWallets) {
     if (err) return console.error(err);
 
-    if (roundWallets.length < 1) {
+    if (gameWallets.length < 1) {
       const account = bnc.createAccount();
-      const rW = new RoundWallet({
+      const gW = new GameWallet({
         asset: asset,
         address: account.address,
         privateKey: account.privateKey,
-        latestTransaction: "",
+        latestTransaction: '',
       });
-      rW.save(function (err) {
+      gW.save(function (err) {
         if (err) return console.error(err);
       });
-      callback(rW);
+      callback(gW);
     } else {
-      const rW = roundWallets[0];
-      callback(rW);
+      const gW = gameWallets[0];
+      callback(gW);
     }
 
   });
@@ -189,6 +221,10 @@ mongoose.connect('mongodb://db:27017/wallets', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+
+// Define express.js app
+const app = express();
+const port = 2311;
 
 // If connected successfully, run API
 const conn = mongoose.connection;
@@ -215,7 +251,7 @@ conn.once('open', () => {
         req.userWallet = uW;
         next();
       } else {
-        return res.status(404).send("user-wallet not found");
+        return res.status(404).send('user-wallet not found');
       }
     });
   });
@@ -234,29 +270,29 @@ conn.once('open', () => {
     });
   });
 
-  // round-wallet
-  app.use('/round-wallet*', (req, res, next) => {
-    loadRoundWallet((rW) => {
-      req.roundWallet = rW;
+  // game-wallet
+  app.use('/game-wallet*', (req, res, next) => {
+    loadGameWallet((gW) => {
+      req.gameWallet = gW;
       next();
     });
   });
-  app.get('/round-wallet', (req, res) => {
-    req.roundWallet.getBalance((b) => {
+  app.get('/game-wallet', (req, res) => {
+    req.gameWallet.getBalance((b) => {
       res.send({
-        address: req.roundWallet.address,
+        address: req.gameWallet.address,
         balance: b
       });
     });
   });
-  app.post('/round-wallet/withdraw', (req, res) => {
-    req.roundWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
+  app.post('/game-wallet/withdraw', (req, res) => {
+    req.gameWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
       if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });
   });
-  app.post('/round-wallet/deposit', (req, res) => {
-    req.roundWallet.deposit(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
+  app.post('/game-wallet/deposit', (req, res) => {
+    req.gameWallet.deposit(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
       if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });

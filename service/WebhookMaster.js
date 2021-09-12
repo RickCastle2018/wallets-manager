@@ -1,26 +1,23 @@
 // This is sub-service, that sends Webhooks to game
 
-// TODO: Redis
-
-// Some helper functions
-// function subscribe
+const axios = require('axios');
+const MongoClient = require('mongodb').MongoClient;
+const Web3 = require('web3');
 
 // Parse Args
 const blockchainNet = process.argv[2];
-const api = (blockchainNet == "mainnet") ? "wss://dex.binance.org/api/ws" : "wss://testnet-dex.binance.org/api/ws";
+const api = (blockchainNet == "mainnet") ? " https://bsc-dataseed.binance.org:443" : "https://data-seed-prebsc-1-s1.binance.org:8545";
+const web3 = new Web3(api);
 
-const webhookListener = process.argv[3];
+const webhookListener = process.argv[2];
 
 // Connect to Mongo
-const MongoClient = require('mongodb').MongoClient;
 MongoClient.connect('mongodb://db:27017/wallets', (err, db) => {
     if (err) return console.log(err);
 
-    // TODO: load from backup and check all transactions after wake up
-    // TODO: ONLY REFILL IS SUPPORTED! t.hash (support other webhook types)
-    let transactionsList = [];
-    process.on('message', function (t) {
-        transactionsList.push(t.hash);
+    let ignoreTransactions = [];
+    process.on('message', function (m) {
+        transactionsList.push(m);
     });
 
     // Get all wallets
@@ -34,23 +31,21 @@ MongoClient.connect('mongodb://db:27017/wallets', (err, db) => {
 
     if (err) return console.log(err);
 
-    const {
-        WebSocket
-    } = require('ws');
-    const conn = new WebSocket(api);
-    conn.on('open', function (evt) {
-        userWallets.forEach(uW => {
-            conn.send(JSON.stringify({
-                method: "subscribe",
-                topic: "transfers",
-                address: uW.address
-            }));
-        });
-
-        // TODO: Check in cycle if new wallets in DB and check their updates
+    let options = {
+        fromBlock: 0,
+        address: userWallets,    //Only get events from specific addresses
+        topics: []                           //What topics to subscribe to
+    };
+    
+    let subscription = web3.eth.subscribe('logs', options,(err,event) => {
+        if (!err)
+        console.log(event);
     });
-    const axios = require('axios');
-    conn.on('message', function (evt) {
+    
+    subscription.on('error', err => { throw err; });
+    subscription.on('connected', nr => console.log(nr));
+    
+    subscription.on('data', function (evt) {
         let t = evt.data;
 
         function loadUserWalletId(address, callback) {
@@ -91,15 +86,5 @@ MongoClient.connect('mongodb://db:27017/wallets', (err, db) => {
             }
         });
     });
-    conn.onerror = function (evt) {
-        console.error('an error occurred', evt.data);
-    };
-    setInterval(() => {
-        // This will extend the connection time to another 30 minutes
-        // It's good to send this message every 30 minutes to maintain the connection life
-        conn.send(JSON.stringify({
-            method: "keepAlive"
-        }));
-    }, 1500000); // 25 min
 
 });

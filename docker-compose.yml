@@ -18,7 +18,9 @@ services:
     build: ./service
     environment:
       BLOCKCHAIN_NET: testnet # never change it in production!
-      WEBHOOK_LISTENER: http://127.0.0.1:80/userWalletRefill
+      WEBHOOKS_LISTENER: http://127.0.0.1:80/userWalletRefill
+      COIN_CONTRACT: 0xa99fdf82aa3f22416ac2db749b4ce830870383ff # REMEMBER to change when in prod
+      NFT_CONTRACT: 0x...
     volumes:
       - ./service:/service
     ports:
