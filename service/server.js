@@ -1,54 +1,44 @@
 'use strict';
 
 // TODO: Write backuper.sh
-// TODO: MAKEFILE!! 2 docker-composes and make up-dev
+// TODO: MAKEFILE! 2 docker-composes and `make up-dev` + docker-compose.dev.yml
+// TODO: errors handling
 
 const {
   Common
 } = require('ethereumjs-common');
 const Tx = require('ethereumjs-tx').Transaction;
-const {
-  fork
-} = require('child_process');
 const Web3 = require('web3');
 const axios = require('axios');
 const mongoose = require('mongoose');
 const express = require('express');
 const fs = require('fs');
 
-// Start WebhookMaster
-const args = [process.env.BLOCKCHAIN_NET, process.env.WEBHOOK_LISTENER];
-const rl = fork('WebhookMaster.js', args);
-rl.on('close', (code) => {
-  console.log('Webhook Master Exited with code ' + code);
-});
-
 // Connect to Binance Smart Chain and coins' smart contract
 const api = (process.env.BLOCKCHAIN_NET == 'mainnet') ? 'https://bsc-dataseed.binance.org:443' : 'https://data-seed-prebsc-1-s1.binance.org:8545';
 const web3 = new Web3(api);
 
 // FIXME: !!! SIMPLETOKEN CHANGE
-const abi = fs.readFileSync('./coin/simpletoken-abi.json', 'utf8');
-const contract = web3.eth.Contract(abi);
-const oglc = contract.at(process.env.COIN_CONTRACT);
+const abi = JSON.parse(fs.readFileSync('./coin/simpletoken-abi.json', 'utf8'));
+const coin = new web3.eth.Contract(abi, process.env.COIN_CONTRACT);
 
 // Setup Transactions Sender
 const blockchainId = (process.env.BLOCKCHAIN_NET == 'mainnet') ? 56 : 97;
-const common = Common.forCustomChain('mainnet', {
-  networkId: blockchainId,
-  chainId: blockchainId
-}, 'petersburg');
 
-function transfer(from, to, amount, transactionId) { // from is userWalletModel or gameWalletModel
+// TODO: Store in Redis with backups
+let requestedTransactions = [];
+
+function transfer(from, to, amount, transaction) { // from is userWalletModel or gameWalletModel
+
+  let data = coin.methods.transfer(to, amount).encodeABI();
 
   const txObject = {
-    from: from.address,
-    to: to,
-    value: web3.utils.toHex(web3.utils.toWei(amount, 'ether')),
+    "to": process.env.COIN_CONTRACT,
+    "data": data
   };
 
   const tx = new Tx(txObject, {
-    common
+    chain: blockchainId
   });
   tx.sign(from.privateKey);
 
@@ -56,21 +46,28 @@ function transfer(from, to, amount, transactionId) { // from is userWalletModel 
   const raw = '0x' + serializedTrans.toString('hex');
 
   web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
-    // tell Refills Listener to ignore this transaction, because it caused by Game
-    rl.send(hash);
-  }).on('confirmation', (confNumber, receipt, latestBlockHash) => {
-    const webhook = {
-      user_id: ('idInGame' in from) ? from.idInGame : loadUserId,
-      type: string,
-      transaction_id: int,
-      status: 'success' / 'fail',
-    };
+    // ignore this transaction, no webhook, because it caused by Game
+    requestedTransactions.push(hash);
+  }).on('confirmation', (confNumber, receipt) => {
 
-    axios({
-      method: 'post',
-      url: process.env.WEBHOOK_LISTENER,
-      data: webhook
+    coin.methods.balanceOf(transaction.user.address, (err, b) => {
+      const webhook = {
+        "transaction_id": transaction.id,
+        "type": transaction.type,
+        "successful": receipt.status,
+        "user": {
+          "id": transaction.user.idInGame,
+          "balance": b,
+        }
+      };
+
+      axios({
+        method: 'post',
+        url: process.env.WEBHOOK_LISTENER,
+        data: webhook
+      });
     });
+
   });
 
 }
@@ -81,43 +78,35 @@ const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
   idInGame: Number,
   address: String,
-  privateKey: String,
-  latestTransaction: String
+  privateKey: String
 });
 userWalletSchema.methods.getBalance = function (callback) {
-  bnc.getBalance(this.address).then((balances) => {
-    if (balances.length < 1) {
-      callback(0);
-    } else {
-      callback(balances.free);
-    }
-  }).catch(err => console.error(err));
+  coin.methods.balanceOf(this.address, (err, b) => {
+    callback(b);
+  });
 };
-userWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipient, callback) {
-  const eventType = 'withdraw';
+userWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipient) {
+  transfer(this, recipient, amount, {
+    "id": gameTransactionId,
+    "user": {
+      "idInGame": 0,
+      "address": this.address
+    },
+    "type": 'withdraw'
+  });
+};
+userWalletSchema.methods.buy = function (price) {
 
-  bnc.setPrivateKey(this.privateKey);
-  bnc.transfer(this.bnbAddress, recipient, amount, asset).then(
-    (res) => {
-      if (res.status !== 200) {
-        callback(res.body.text);
-      } else {
-        const blockchainTransactionHash = res.result[0].hash;
-        monitorTransaction(this.idInGame, gameTransactionId, blockchainTransactionHash, eventType);
-      }
-    }
-  );
 };
 const UserWallet = mongoose.model('UserWallet', userWalletSchema);
 
 function createUserWallet(userIdInGame, callback) {
-  let account = bnc.createAccount();
+  let account = web3.eth.accounts.create();
   let userWallet = new UserWallet({
     createdDate: new Date(),
     idInGame: userIdInGame,
     address: account.address,
-    privateKey: account.privateKey,
-    latestTransaction: ''
+    privateKey: account.privateKey
   });
   userWallet.save().then(
     (uW) => {
@@ -137,71 +126,44 @@ function loadUserWallet(userIdInGame, callback) {
 
 // game-wallet
 const gameWalletSchema = new mongoose.Schema({
-  asset: String,
   address: String,
   privateKey: String,
-  latestTransaction: String
 });
 gameWalletSchema.methods.getBalance = function (callback) {
-  bnc.getBalance(this.address).then((balances) => {
-    if (balances.length < 1) {
-      callback(0);
-    } else {
-      callback(balances.free);
-    }
-  }).catch(err => console.error(err));
-};
-gameWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId, callback) {
-  const eventType = 'exit';
-  bnc.setPrivateKey(this.privateKey);
-
-  loadUserWallet(recipientGameId, (uW) => {
-    bnc.transfer(this.address, uW.address, amount, asset).then(
-      (res) => {
-        if (res.status !== 200) {
-          callback(res.body.text);
-        } else {
-          const blockchainTransactionHash = res.result[0].hash;
-          monitorTransaction(uW.idInGame, gameTransactionId, blockchainTransactionHash, eventType);
-        }
-      }
-    );
+  coin.methods.balanceOf(this.address, (err, b) => {
+    callback(b);
   });
 };
-gameWalletSchema.methods.deposit = function (gameTransactionId, amount, depositorGameId, callback) {
-  const eventType = 'deposit';
-
+gameWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId) {
+  loadUserWallet(recipientGameId, (uW) => {
+    transfer(this, uW, amount, {
+      "id": gameTransactionId,
+      "user": uW,
+      "type": "exit"
+    });
+  });
+};
+gameWalletSchema.methods.deposit = function (gameTransactionId, amount, depositorGameId) {
   loadUserWallet(depositorGameId, (uW) => {
-    bnc.setPrivateKey(uW.privateKey);
-
-    bnc.transfer(uW.address, this.address, amount, asset).then(
-      (res) => {
-        if (res.status !== 200) {
-          callback(res.body.text);
-        } else {
-          const blockchainTransactionHash = res.result[0].hash;
-          monitorTransaction(uW.idInGame, gameTransactionId, blockchainTransactionHash, eventType);
-        }
-      }
-    );
+    transfer(uW, this, amount, {
+      "id": gameTransactionId,
+      "user": this,
+      "type": 'deposit'
+    });
   });
 };
 const GameWallet = mongoose.model('GameWallet', gameWalletSchema);
 
 function loadGameWallet(callback) {
 
-  GameWallet.find({
-    asset: asset
-  }, function (err, gameWallets) {
+  GameWallet.find({}, function (err, gameWallets) {
     if (err) return console.error(err);
 
     if (gameWallets.length < 1) {
-      const account = bnc.createAccount();
+      const account = web3.eth.accounts.create();
       const gW = new GameWallet({
-        asset: asset,
         address: account.address,
         privateKey: account.privateKey,
-        latestTransaction: '',
       });
       gW.save(function (err) {
         if (err) return console.error(err);
@@ -230,6 +192,66 @@ const port = 2311;
 const conn = mongoose.connection;
 conn.on('error', console.error.bind(console, 'connection error:'));
 conn.once('open', () => {
+
+  // Setup Refills Listening
+  let options = {
+    filter: {
+      value: [],
+    },
+    fromBlock: 0
+  };
+  coin.events.Transfer(options)
+    .on('data', (t) => {
+
+      function loadUserWalletId(address, callback) {
+        UserWallet.findOne({
+          address: address
+        }, (err, uW) => {
+          let found;
+          if (err) {
+            found = false;
+            uW = {
+              userIdInGame: ''
+            };
+          }
+
+          callback(found, uW.userIdInGame);
+        });
+      }
+
+      loadUserWalletId(t.returnValues.to, (found, userWalletId) => {
+
+        coin.methods.balanceOf(t.returnValues.to, (err, b) => {
+          const webhook = {
+            "transaction_id": 0,
+            "type": 'refill',
+            "successful": true,
+            "user": {
+              "id": userWalletId,
+              "balance": b,
+            }
+          };
+
+          if (!requestedTransactions.includes(t.transactionHash) && found) {
+            axios({
+              method: 'post',
+              url: process.env.WEBHOOK_LISTENER,
+              data: webhook
+            });
+          }
+
+          let txli = requestedTransactions.indexOf(t.H);
+          if (txli != -1) {
+            requestedTransactions.split(txli, 1);
+          }
+        });
+
+      });
+    })
+    .on('error', err => {
+      console.error(err);
+    });
+
 
   // Auto JSON responces parsing&marshalling
   app.use(express.urlencoded({

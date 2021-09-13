@@ -29,7 +29,7 @@ contract simpleToken {
         return allowed[_owner][_spender];
   }
 
-    function transfer(address _to, uint256 _value) public returns (bool ) {
+    function transfer(address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
         require(balances[msg.sender] >= _value); 
         balances[msg.sender] = balances[msg.sender] - _value; 
