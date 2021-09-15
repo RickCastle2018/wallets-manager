@@ -80,6 +80,3 @@ contract simpleToken {
         emit Transfer(0x0, msg.sender, initialSupply);
     }
 }
-    
-    
-

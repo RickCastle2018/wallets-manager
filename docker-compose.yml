@@ -18,9 +18,9 @@ services:
     build: ./service
     environment:
       BLOCKCHAIN_NET: "testnet" # never change it in production!
-      WEBHOOKS_LISTENER: "http://127.0.0.1:80/userWalletRefill"
+      WEBHOOKS_LISTENER: "http://127.0.0.1:80/wallets-manager"
       COIN_CONTRACT: "0xa99fdf82aa3f22416ac2db749b4ce830870383ff" # REMEMBER to change when in prod
-      NFT_CONTRACT: "0x..."
+      GAS_PRICE: 10 # it's DEFAULT. in Gwei (will be automatized)
     volumes:
       - ./service:/service
     ports:

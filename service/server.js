@@ -2,11 +2,8 @@
 
 // TODO: Write backuper.sh
 // TODO: MAKEFILE! 2 docker-composes and `make up-dev` + docker-compose.dev.yml
-// TODO: errors handling
+// TODO: errors handling / passing
 
-const {
-  Common
-} = require('ethereumjs-common');
 const Tx = require('ethereumjs-tx').Transaction;
 const Web3 = require('web3');
 const axios = require('axios');
@@ -19,7 +16,7 @@ const api = (process.env.BLOCKCHAIN_NET == 'mainnet') ? 'https://bsc-dataseed.bi
 const web3 = new Web3(api);
 
 // FIXME: !!! SIMPLETOKEN CHANGE
-const abi = JSON.parse(fs.readFileSync('./coin/simpletoken-abi.json', 'utf8'));
+const abi = JSON.parse(fs.readFileSync('./coin/simpletoken.json', 'utf8'));
 const coin = new web3.eth.Contract(abi, process.env.COIN_CONTRACT);
 
 // Setup Transactions Sender
@@ -30,42 +27,55 @@ let requestedTransactions = [];
 
 function transfer(from, to, amount, transaction) { // from is userWalletModel or gameWalletModel
 
-  let data = coin.methods.transfer(to, amount).encodeABI();
+  web3.eth.getTransactionCount(from, (err, txCount) => {
 
-  const txObject = {
-    "to": process.env.COIN_CONTRACT,
-    "data": data
-  };
+    let data = coin.methods.transfer(to, amount).encodeABI();
 
-  const tx = new Tx(txObject, {
-    chain: blockchainId
-  });
-  tx.sign(from.privateKey);
+    const txObject = {
+      "nonce": web3.utils.toHex(txCount),
+      "to": process.env.COIN_CONTRACT,
+      "data": data,
+      "value": web3.utils.toHex(0),
+      "gasLimit": web3.utils.toHex(100000),
+      "gasPrice": web3.utils.toHex(web3.utils.toWei(process.env.GAS_PRICE, 'gwei')),
+      "chain": blockchainId
+    };
 
-  const serializedTrans = tx.serialize();
-  const raw = '0x' + serializedTrans.toString('hex');
+    const tx = new Tx(txObject, {
+      networkId: blockchainId,
+      chainId: blockchainId,
+      hardfork: "petersburg",
+      chain: blockchainId
+    });
+    tx.sign(from.privateKey);
 
-  web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
-    // ignore this transaction, no webhook, because it caused by Game
-    requestedTransactions.push(hash);
-  }).on('confirmation', (confNumber, receipt) => {
+    const serializedTrans = tx.serialize();
+    const raw = '0x' + serializedTrans.toString('hex');
 
-    coin.methods.balanceOf(transaction.user.address, (err, b) => {
-      const webhook = {
-        "transaction_id": transaction.id,
-        "type": transaction.type,
-        "successful": receipt.status,
-        "user": {
-          "id": transaction.user.idInGame,
-          "balance": b,
-        }
-      };
+    web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
+      // ignore this transaction, no webhook, because it caused by Game
+      requestedTransactions.push(hash);
+    }).on('confirmation', (confNumber, receipt) => {
 
-      axios({
-        method: 'post',
-        url: process.env.WEBHOOK_LISTENER,
-        data: webhook
+      transaction.user.getBalance((err, b) => {
+        const webhook = {
+          "transaction_id": transaction.id,
+          "type": transaction.type,
+          "successful": receipt.status,
+          "user": {
+            "id": transaction.user.idInGame,
+            "balance": b,
+            "address": transaction.user.address
+          }
+        };
+
+        axios({
+          method: 'post',
+          url: process.env.WEBHOOK_LISTENER,
+          data: webhook
+        });
       });
+
     });
 
   });
@@ -81,8 +91,13 @@ const userWalletSchema = new mongoose.Schema({
   privateKey: String
 });
 userWalletSchema.methods.getBalance = function (callback) {
-  coin.methods.balanceOf(this.address, (err, b) => {
-    callback(b);
+  coin.methods.balanceOf(this.address).call().then((coins) => {
+    web3.eth.getBalance(this.address).then((bnb) => {
+      callback({
+        oglc: coins,
+        bnb: bnb
+      });
+    });
   });
 };
 userWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipient) {
@@ -130,8 +145,13 @@ const gameWalletSchema = new mongoose.Schema({
   privateKey: String,
 });
 gameWalletSchema.methods.getBalance = function (callback) {
-  coin.methods.balanceOf(this.address, (err, b) => {
-    callback(b);
+  coin.methods.balanceOf(this.address).call().then((coins) => {
+    web3.eth.getBalance(this.address).then((bnb) => {
+      callback({
+        oglc: coins,
+        bnb: bnb
+      });
+    });
   });
 };
 gameWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipientGameId) {
@@ -287,6 +307,12 @@ conn.once('open', () => {
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
     req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
+      if (err == undefined) return res.status(500).send(err);
+      res.status(200).send();
+    });
+  });
+  app.post('/user-wallets/:idInGame/buy', (req, res) => {
+    req.userWallet.buy(req.body.price, (err) => {
       if (err == undefined) return res.status(500).send(err);
       res.status(200).send();
     });

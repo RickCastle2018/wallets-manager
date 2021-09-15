@@ -1,1 +1,0 @@
-// Smart contract for OGLC ICO/ITO
