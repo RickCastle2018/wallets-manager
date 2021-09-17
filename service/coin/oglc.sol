@@ -1,8 +1,7 @@
 pragma solidity 0.5.16;
 
-// NOT USED YET! See simpletoken.sol
-// SOURCE: https://docs.binance.org/smart-chain/developer/issue-BEP20.html
-// VARS: 354 line
+// DEPLOYED-MAINNET: 
+// DEPLOYED-TESTNET: https://testnet.bscscan.com/tx/0x45046de12ea56919bbf1c8325b7adaeb4cb91b0562d8c22207e6a95f4d0f74dc
 
 interface IBEP20 {
   /**
@@ -355,8 +354,8 @@ contract BEP20Token is Context, IBEP20, Ownable {
   constructor() public {
     _name = "Ogle Coin";
     _symbol = "OGLC";
-    _decimals = "8";
-    _totalSupply = 21*1000000*(10**uint256(decimals));
+    _decimals = 18;
+    _totalSupply = 2500000*(10**uint256(_decimals));
     _balances[msg.sender] = _totalSupply;
 
     emit Transfer(address(0), msg.sender, _totalSupply);

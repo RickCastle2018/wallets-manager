@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
-// USED FOR TESTING
-// DEPLOYED: nknv.ru/oglc-testnet
+// DEPRECATED! NOW USING OGLC.SOL
+// DEPLOYED: https://testnet.bscscan.com/token/0xa99fdf82aa3f22416ac2db749b4ce830870383ff
 
 contract simpleToken {
 

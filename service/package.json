@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Seasteading/wallets-manager#readme",
   "dependencies": {
+    "@ethereumjs/common": "^2.4.0",
     "axios": "^0.21.1",
     "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
