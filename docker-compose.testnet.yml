@@ -16,13 +16,14 @@ services:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
-      BLOCKCHAIN_ID:  97 # testnet
+      BLOCKCHAIN_ID: 97 # testnet
       BLOCKCHAIN_NODE: https://data-seed-prebsc-1-s1.binance.org:8545/
       COIN_CONTRACT: "0x5b0150e7cdb02f8498675f8da8d648dee7c79c84"
+      BNB_PRICE: 10000 # OGLC COINS
       WEBHOOKS_LISTENER: http://host.docker.internal:80/wallets-manager # host.docker.internal — only for local develpment on MacOS and Windows
     volumes:
       - ./service:/service
     ports:
-      - 127.0.0.1:2311:2311 # 127.0.0.1 to make service availble onl locally
+      - 2311:2311
     depends_on:
       - db

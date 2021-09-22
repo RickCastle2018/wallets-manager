@@ -19,7 +19,8 @@ services:
     environment:
       BLOCKCHAIN_ID: 56 # mainnet
       BLOCKCHAIN_NODE: https://bsc-dataseed.binance.org/
-      COIN_CONTRACT: ""
+      COIN_CONTRACT: "0xa99fdf82aa3f22416ac2db749b4ce830870383ff"
+      BNB_PRICE: 1000 # OGLC COINS
       WEBHOOKS_LISTENER: http://PUBLIC_IP:PORT/secretwebhookshandler
     volumes:
       - ./service:/service

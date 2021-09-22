@@ -2,7 +2,8 @@
 
 // TODO: Write backuper.sh
 // TODO: MAKEFILE! 2 docker-composes and `make up-dev` + docker-compose.dev.yml
-// TODO: errors handling / passing
+
+// BUG: errors handling / passing AND service responds
 
 const Tx = require('ethereumjs-tx').Transaction;
 const Common = require('@ethereumjs/common');
@@ -70,12 +71,12 @@ function transferCoin(from, to, amount, transaction) { // from is userWalletMode
         const serializedTrans = tx.serialize();
         const raw = '0x' + serializedTrans.toString('hex');
       
-        web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
+        web3.eth.sendSignedTransaction(raw, (hash) => {
           // ignore this transaction, no webhook, because it caused by Game
           requestedTransactions.push(hash);
-        }).on('confirmation', (confNumber, receipt) => {
+        }).once('confirmation', (confNumber, receipt) => {
+          transaction.user.getBalance((b) => {
 
-          transaction.user.getBalance((err, b) => {
             const webhook = {
               "transaction_id": transaction.id,
               "type": transaction.type,
@@ -94,7 +95,8 @@ function transferCoin(from, to, amount, transaction) { // from is userWalletMode
             });
           });
 
-        });
+        }); 
+
       });
 
     });
@@ -130,12 +132,12 @@ function transferBNB(from, to, amount, transaction) {
         const serializedTrans = tx.serialize();
         const raw = '0x' + serializedTrans.toString('hex');
 
-        web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
+        web3.eth.sendSignedTransaction(raw, (hash) => {
           // ignore this transaction, no webhook, because it caused by Game
           requestedTransactions.push(hash);
-        }).on('confirmation', (confNumber, receipt) => {
+        }).once('confirmation', (confNumber, receipt) => {
 
-          transaction.user.getBalance((err, b) => {
+          transaction.user.getBalance((b) => {
             const webhook = {
               "transaction_id": transaction.id,
               "type": transaction.type,
@@ -246,8 +248,29 @@ userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
     "type": 'withdraw'
   });
 };
-userWalletSchema.methods.exchange = function (gameTransactionId, bnb, coins) {
+userWalletSchema.methods.exchangeOGLC = function (gameTransactionId, coins) {
   loadGameWallet((gW) => {
+
+    const bnb = coins / process.env.BNB_PRICE;
+
+    transferBNB(this, gW, bnb, {
+      "id": gameTransactionId,
+      "user": this,
+      "type": "exchange"
+    });
+
+    transferCoin(gW, this, coins, {
+      "id": gameTransactionId,
+      "user": this,
+      "type": 'exchange'
+    });
+
+  });
+};
+userWalletSchema.methods.exchangeBNB = function (gameTransactionId, bnb) {
+  loadGameWallet((gW) => {
+
+    const coins = bnb * process.env.BNB_PRICE;
 
     transferBNB(this, gW, bnb, {
       "id": gameTransactionId,
@@ -422,8 +445,16 @@ conn.once('open', () => {
       res.status(500).send(error);
     }
   });
+
+  // exchange
+  app.get('/user-wallets/:idInGame/exchange', (req, res) => {
+    res.send({
+      bnb: process.env.BNB_PRICE
+    });
+  });
   app.post('/user-wallets/:idInGame/exchange', (req, res) => {
     try {
+      // TODO: check bnb-to-oglc or oglc-to-bnb
       req.userWallet.exchangeBNB(req.body.transaction_id, req.body.bnb, req.body.oglc);
       res.status(200).send();
     } catch (error) {
@@ -449,6 +480,7 @@ conn.once('open', () => {
   app.post('/game-wallet/withdraw', (req, res) => {
     try {
       req.gameWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to);
+      res.status(200).send();
     } catch (error) {
       res.status(500).send(error);
     }
