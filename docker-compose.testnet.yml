@@ -20,7 +20,7 @@ services:
       BLOCKCHAIN_NODE: https://data-seed-prebsc-1-s1.binance.org:8545/
       COIN_CONTRACT: "0x5b0150e7cdb02f8498675f8da8d648dee7c79c84"
       BNB_PRICE: 10000 # OGLC COINS
-      WEBHOOKS_LISTENER: http://host.docker.internal:80/wallets-manager # host.docker.internal — only for local develpment on MacOS and Windows
+      WEBHOOKS_LISTENER: https://ogle.money/api/wallet/Chai4aichie7ce2imiesiJ4osheenaeyaeGahShe # http://host.docker.internal:80/wallets-manager # host.docker.internal — only for local develpment on MacOS and Windows
     volumes:
       - ./service:/service
     ports:
