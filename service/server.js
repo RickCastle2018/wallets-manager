@@ -1,9 +1,6 @@
 'use strict';
 
 // TODO: Write backuper.sh
-// TODO: MAKEFILE! 2 docker-composes and `make up-dev` + docker-compose.dev.yml
-
-// BUG: errors handling / passing AND service responds
 
 const Tx = require('ethereumjs-tx').Transaction;
 const Common = require('@ethereumjs/common');
@@ -12,6 +9,7 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const express = require('express');
 const fs = require('fs');
+const BigNumber = require('bignumber.js');
 
 // Connect to Binance Smart Chain and coins' smart contract
 const web3 = new Web3(process.env.BLOCKCHAIN_NODE);
@@ -39,14 +37,13 @@ coin.defaultCommon = defaultCommon;
 let requestedTransactions = [];
 
 // Transfer builders
-
-function transferCoin(from, to, amount, transaction) { // from is userWalletModel or gameWalletModel
+function transferCoin(from, to, amount, transaction, callback) { // from is userWalletModel or gameWalletModel
 
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
 
     web3.eth.getGasPrice().then((gasPrice) => {
 
-      let data = coin.methods.transfer(to.address, amount).encodeABI();
+      let data = coin.methods.transfer(to.address, amount.toString()).encodeABI();
 
       let txObject = {
         "from": from.address,
@@ -70,11 +67,15 @@ function transferCoin(from, to, amount, transaction) { // from is userWalletMode
 
         const serializedTrans = tx.serialize();
         const raw = '0x' + serializedTrans.toString('hex');
-      
-        web3.eth.sendSignedTransaction(raw, (hash) => {
+
+        let event = web3.eth.sendSignedTransaction(raw, (hash) => {
           // ignore this transaction, no webhook, because it caused by Game
           requestedTransactions.push(hash);
-        }).once('confirmation', (confNumber, receipt) => {
+        }).catch(err => {
+          return callback(err);
+        });
+        callback();
+        event.once('confirmation', (confNumber, receipt) => {
           transaction.user.getBalance((b) => {
 
             const webhook = {
@@ -95,7 +96,7 @@ function transferCoin(from, to, amount, transaction) { // from is userWalletMode
             });
           });
 
-        }); 
+        });
 
       });
 
@@ -105,7 +106,7 @@ function transferCoin(from, to, amount, transaction) { // from is userWalletMode
 
 }
 
-function transferBNB(from, to, amount, transaction) {
+function transferBNB(from, to, amount, transaction, callback) {
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
 
     web3.eth.getGasPrice().then((gasPrice) => {
@@ -114,12 +115,13 @@ function transferBNB(from, to, amount, transaction) {
         "from": from.address,
         "nonce": web3.utils.toHex(txCount),
         "to": to.address,
-        "value": web3.utils.toHex(amount),
+        "value": web3.utils.toHex(amount.toString()),
         "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
         "gasPrice": web3.utils.toHex(gasPrice),
         "gasLimit": web3.utils.toHex(100000)
       };
 
+      // TODO: gasLimit optimisation
       web3.eth.estimateGas(txObject).then((estimateGas) => {
         // txObject.gasLimit = web3.utils.toHex(estimateGas);
 
@@ -132,10 +134,14 @@ function transferBNB(from, to, amount, transaction) {
         const serializedTrans = tx.serialize();
         const raw = '0x' + serializedTrans.toString('hex');
 
-        web3.eth.sendSignedTransaction(raw, (hash) => {
+        let event = web3.eth.sendSignedTransaction(raw, (hash) => {
           // ignore this transaction, no webhook, because it caused by Game
           requestedTransactions.push(hash);
-        }).once('confirmation', (confNumber, receipt) => {
+        }).catch(err => {
+          return callback(err);
+        });
+        callback();
+        event.once('confirmation', (confNumber, receipt) => {
 
           transaction.user.getBalance((b) => {
             const webhook = {
@@ -166,6 +172,7 @@ function transferBNB(from, to, amount, transaction) {
 }
 
 function listenRefills() {
+  // TODO: Setup own websockets node
   // TODO: Listen only for our user-wallets
   let options = {
     filter: {
@@ -228,7 +235,7 @@ userWalletSchema.methods.getBalance = function (callback) {
     });
   });
 };
-userWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipient) {
+userWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipient, callback) {
   transferCoin(this, recipient, amount, {
     "id": gameTransactionId,
     "user": {
@@ -236,52 +243,92 @@ userWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, rec
       "address": this.address
     },
     "type": 'withdraw'
+  }, (err) => {
+    callback(err);
   });
 };
-userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipient) {
+userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipient, callback) {
   transferBNB(this, recipient, amount, {
     "id": gameTransactionId,
-    "user": {
-      "idInGame": 0,
-      "address": this.address
-    },
+    "user": this,
     "type": 'withdraw'
+  }, (err) => {
+    callback(err);
   });
 };
-userWalletSchema.methods.exchangeOGLC = function (gameTransactionId, coins) {
+// TODO: calculate exchange/withdraw possibility functions (on/off flag in config)
+userWalletSchema.methods.exchangeCoin = function (gameTransactionId, coins, callback) {
   loadGameWallet((gW) => {
 
-    const bnb = coins / process.env.BNB_PRICE;
+    const bigCoins = new BigNumber(coins);
+    const bnb = bigCoins.dividedBy(process.env.BNB_PRICE).minus(bigCoins.multipliedBy(process.env.EXCHANGE_COMMISSION));
 
-    transferBNB(this, gW, bnb, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": "exchange"
-    });
+    this.getBalance((uwBalance) => {
+      gW.getBalance((gwBalance) => {
 
-    transferCoin(gW, this, coins, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": 'exchange'
+        if (uwBalance.oglc < coins || gwBalance.bnb < bnb.toString()) {
+          callback('insufficient funds');
+        } else {
+
+          transferBNB(this, gW, bnb, {
+            "id": gameTransactionId,
+            "user": this,
+            "type": "exchange"
+          }, (err) => {
+            callback(err);
+
+            if (!err) {
+              transferCoin(gW, this, coins, {
+                "id": gameTransactionId,
+                "user": this,
+                "type": 'exchange'
+              }, (err) => {
+                callback(err);
+              });
+            }
+          });
+
+        }
+
+      });
     });
 
   });
 };
-userWalletSchema.methods.exchangeBNB = function (gameTransactionId, bnb) {
+userWalletSchema.methods.exchangeBNB = function (gameTransactionId, bnb, callback) {
   loadGameWallet((gW) => {
 
-    const coins = bnb * process.env.BNB_PRICE;
+    const bigBNB = new BigNumber(bnb);
+    const coins = bigBNB.multipliedBy(process.env.BNB_PRICE).minus(bigBNB.multipliedBy(process.env.EXCHANGE_COMMISSION));
 
-    transferBNB(this, gW, bnb, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": "exchange"
-    });
+    this.getBalance((uwBalance) => {
+      gW.getBalance((gwBalance) => {
 
-    transferCoin(gW, this, coins, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": 'exchange'
+        if (uwBalance.bnb < bnb || gwBalance.oglc < coins.toString()) {
+          callback('insufficient funds');
+        } else {
+
+          transferBNB(this, gW, bnb, {
+            "id": gameTransactionId,
+            "user": this,
+            "type": "exchange"
+          }, (err) => {
+            callback(err);
+
+            if (!err) {
+              transferCoin(gW, this, coins, {
+                "id": gameTransactionId,
+                "user": this,
+                "type": 'exchange'
+              }, (err) => {
+                callback(err);
+              });
+            }
+          });
+
+        }
+
+      });
     });
 
   });
@@ -289,18 +336,31 @@ userWalletSchema.methods.exchangeBNB = function (gameTransactionId, bnb) {
 const UserWallet = mongoose.model('UserWallet', userWalletSchema);
 
 function createUserWallet(userIdInGame, callback) {
-  let account = web3.eth.accounts.create();
-  let userWallet = new UserWallet({
-    createdDate: new Date(),
-    idInGame: userIdInGame,
-    address: account.address,
-    privateKey: account.privateKey
-  });
-  userWallet.save().then(
-    (uW) => {
-      callback(uW);
+
+  UserWallet.findOne({
+    idInGame: userIdInGame
+  }, (err, foundWallet) => {
+
+    if (err) {
+      callback(foundWallet);
+    } else {
+
+      let account = web3.eth.accounts.create();
+      let userWallet = new UserWallet({
+        createdDate: new Date(),
+        idInGame: userIdInGame,
+        address: account.address,
+        privateKey: account.privateKey
+      });
+      userWallet.save().then(
+        (uW) => {
+          callback(uW);
+        }
+      );
+
     }
-  );
+
+  });
 }
 
 function loadUserWallet(userIdInGame, callback) {
@@ -347,7 +407,7 @@ gameWalletSchema.methods.withdraw = function (gameTransactionId, amount, recipie
   loadUserWallet(recipientGameId, (uW) => {
     transferCoin(this, uW, amount, {
       "id": gameTransactionId,
-      "user": uW,
+      "user": this,
       "type": "exit"
     });
   });
@@ -388,14 +448,14 @@ function loadGameWallet(callback) {
 }
 
 // Start mongoose connection
-mongoose.connect('mongodb://db:27017/wallets', {
+const dbName = process.env.DB_NAME;
+mongoose.connect('mongodb://db:27017/' + dbName, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
 
 // Define express.js app
 const app = express();
-const port = 2311;
 
 // If connected successfully, run API
 const conn = mongoose.connection;
@@ -438,27 +498,42 @@ conn.once('open', () => {
     });
   });
   app.post('/user-wallets/:idInGame/withdraw', (req, res) => {
-    try {
-      req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to);
-      res.status(200).send();
-    } catch (error) {
-      res.status(500).send(error);
+    switch (req.body.currency) {
+      case 'bnb':
+        req.userWallet.withdrawBNB(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
+          if (err) return res.status(500).send(err);
+          res.status(200).send();
+        });
+        break;
+      case 'oglc':
+        req.userWallet.withdrawCoin(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
+          if (err) return res.status(500).send(err);
+          res.status(200).send();
+        });
+        break;
     }
   });
-
-  // exchange
+  // Exchange Handles
   app.get('/user-wallets/:idInGame/exchange', (req, res) => {
     res.send({
-      bnb: process.env.BNB_PRICE
+      bnb: process.env.BNB_PRICE,
+      commission: process.env.EXCHANGE_COMMISSION
     });
   });
   app.post('/user-wallets/:idInGame/exchange', (req, res) => {
-    try {
-      // TODO: check bnb-to-oglc or oglc-to-bnb
-      req.userWallet.exchangeBNB(req.body.transaction_id, req.body.bnb, req.body.oglc);
-      res.status(200).send();
-    } catch (error) {
-      res.status(500).send(error);
+    switch (req.body.exchange) {
+      case 'oglc':
+        req.userWallet.exchangeCoin(req.body.transaction_id, req.body.amount, (err) => {
+          if (err != undefined) return res.status(500).send(err);
+          res.status(200).send();
+        });
+        break;
+      case 'bnb':
+        req.userWallet.exchangeBNB(req.body.transaction_id, req.body.amount, (err) => {
+          if (err != undefined) return res.status(500).send(err);
+          res.status(200).send();
+        });
+        break;
     }
   });
 
@@ -493,7 +568,7 @@ conn.once('open', () => {
     }
   });
 
-  app.listen(port, () => {
+  app.listen(process.env.PORT, () => {
     console.log(`wallets-manager running at http://127.0.0.1:${port}`);
   });
 });

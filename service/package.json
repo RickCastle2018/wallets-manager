@@ -20,6 +20,7 @@
   "dependencies": {
     "@ethereumjs/common": "^2.4.0",
     "axios": "^0.21.1",
+    "bignumber.js": "^9.0.1",
     "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
     "mongodb": "^4.1.0",

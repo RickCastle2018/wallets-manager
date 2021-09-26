@@ -8,7 +8,7 @@ services:
     image: mongo
     container_name: 'wallets-manager-database'
     environment:
-      MONGO_INITDB_DATABASE: wallets
+      MONGO_INITDB_DATABASE: wallets-mainnet
     volumes:
       - ./db/data:/data/db
     restart: always
@@ -17,10 +17,13 @@ services:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
-      BLOCKCHAIN_ID: 56 # mainnet
+      PORT: 2311
+      DB_NAME: wallets-mainnet
+      BLOCKCHAIN_ID: 56
       BLOCKCHAIN_NODE: https://bsc-dataseed.binance.org/
       COIN_CONTRACT: "0xa99fdf82aa3f22416ac2db749b4ce830870383ff"
       BNB_PRICE: 1000 # OGLC COINS
+      EXCHANGE_COMMISSION: 0.05 # = 5%
       WEBHOOKS_LISTENER: https://ogle.money/api/wallet/Chai4aichie7ce2imiesiJ4osheenaeyaeGahShe
     volumes:
       - ./service:/service
