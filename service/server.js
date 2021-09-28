@@ -40,37 +40,30 @@ let requestedTransactions = [];
 
 // Transfer builders
 function transferCoin(from, to, amount, transaction, callback) { // from is userWalletModel or gameWalletModel
+
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
+
     web3.eth.getGasPrice().then((gasPrice) => {
 
-      const data = coin.methods.transfer(to.address, amount.toString());
+      let data = coin.methods.transfer(to.address, amount).encodeABI();
 
-      const measureTx = {
+      let txObject = {
         "from": from.address,
+        "nonce": web3.utils.toHex(txCount),
+        "to": process.env.COIN_CONTRACT,
+        "data": data,
         "value": web3.utils.toHex(0),
         "gasPrice": web3.utils.toHex(gasPrice),
-        "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID)
+        "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
+        "gasLimit": web3.utils.toHex(100000)
       };
 
-      coin.methods.transfer(to.address, amount.toString()).estimateGas(measureTx, (err, estimateGas) => {
-        
+      coin.methods.transfer(to.address, amount).estimateGas(txObject, (err, estimateGas) => {
+        // txObject.gasLimit = web3.utils.toHex(estimateGas);
         if (err) return callback(err);
-
-        const txObject = {
-          "from": from.address,
-          "nonce": web3.utils.toHex(txCount),
-          "to": process.env.COIN_CONTRACT,
-          "data": data,
-          "value": web3.utils.toHex(0),
-          "gasPrice": web3.utils.toHex(gasPrice),
-          "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
-          "gasLimit": web3.utils.toHex(100000) // web3.utils.toHex(new web3.utils.BN(Math.round(estimateGas + (estimateGas * 0.2))))
-        };
-
         callback();
-                
-        if (!transaction.dry) {
 
+        if (!transaction.dry) {
           const tx = new Tx(txObject, {
             common
           });
@@ -80,13 +73,12 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
           const serializedTrans = tx.serialize();
           const raw = '0x' + serializedTrans.toString('hex');
 
-          web3.eth.sendSignedTransaction(raw, (hash) => {
+          web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
             // ignore this transaction, no webhook, because it caused by Game
             requestedTransactions.push(hash);
-          }).once('receipt', (receipt) => {
+          }).on('confirmation', (confNumber, receipt) => {
 
-            transaction.user.getBalance((b) => {
-
+            transaction.user.getBalance((err, b) => {
               const webhook = {
                 "transaction_id": transaction.id,
                 "type": transaction.type,
@@ -107,10 +99,10 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
 
           });
         }
-
       });
 
     });
+
   });
 }
 
@@ -461,17 +453,17 @@ gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
 gameWalletSchema.methods.buy = function (gameTransactionId, amount, depositorGameId, callback) {
   loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
-    transferCoin(uW, this, amount, {
-      "id": gameTransactionId,
-      "user": {
-        "idInGame": 0,
-        "address": this.address
-      },
-      "type": 'purchase',
-      "dry": false
-    }, (err) => {
-      callback(err);
-    });
+      transferCoin(uW, this, amount, {
+        "id": gameTransactionId,
+        "user": {
+          "idInGame": 0,
+          "address": this.address
+        },
+        "type": 'purchase',
+        "dry": false
+      }, (err) => {
+        callback(err);
+      });
     } else {
       callback("no recipient provided");
     }
