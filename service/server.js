@@ -43,8 +43,6 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
     web3.eth.getGasPrice().then((gasPrice) => {
 
-      console.log("coin");
-
       const data = coin.methods.transfer(to.address, amount);
 
       const measureTx = {
@@ -71,8 +69,6 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
           "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
           "gasLimit": web3.utils.toHex(Math.round(estimateGas + (estimateGas * 0.2)))
         };
-
-        console.log(Math.round(estimateGas + (estimateGas * 0.2)));
 
         callback();
 
@@ -122,8 +118,6 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
 function transferBNB(from, to, amount, transaction, callback) {
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
     web3.eth.getGasPrice().then((gasPrice) => {
-
-      console.log("bnb");
 
       const measureTx = {
         "from": from.address,
@@ -458,7 +452,7 @@ gameWalletSchema.methods.buy = function (gameTransactionId, amount, depositorGam
     transferCoin(uW, this, amount, {
       "id": gameTransactionId,
       "user": this,
-      "type": 'deposit',
+      "type": 'purchase',
       "dry": false
     }, (err) => {
       callback(err);
