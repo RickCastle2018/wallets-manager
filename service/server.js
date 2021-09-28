@@ -45,7 +45,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
 
     web3.eth.getGasPrice().then((gasPrice) => {
 
-      let data = coin.methods.transfer(to.address, amount).encodeABI();
+      let data = coin.methods.transfer(to.address, new web3.utils.BN(amount)).encodeABI();
 
       let txObject = {
         "from": from.address,
@@ -58,7 +58,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
         "gasLimit": web3.utils.toHex(100000)
       };
 
-      coin.methods.transfer(to.address, amount).estimateGas(txObject, (err, estimateGas) => {
+      coin.methods.transfer(to.address, new web3.utils.BN(amount)).estimateGas(txObject, (err, estimateGas) => {
         // txObject.gasLimit = web3.utils.toHex(estimateGas);
         if (err) return callback(err);
         callback();
