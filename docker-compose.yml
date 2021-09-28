@@ -23,7 +23,7 @@ services:
       BLOCKCHAIN_NODE: https://bsc-dataseed.binance.org/
       COIN_CONTRACT: "0xa99fdf82aa3f22416ac2db749b4ce830870383ff"
       BNB_PRICE: 1000 # OGLC COINS
-      EXCHANGE_COMMISSION: 0.05 # = 5%
+      EXCHANGE_FEE: 0.05 # = 5%
       WEBHOOKS_LISTENER: https://ogle.money/api/wallet/Chai4aichie7ce2imiesiJ4osheenaeyaeGahShe
     volumes:
       - ./service:/service
