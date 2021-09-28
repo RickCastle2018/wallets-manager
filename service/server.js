@@ -64,7 +64,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
           "value": web3.utils.toHex(0),
           "gasPrice": web3.utils.toHex(gasPrice),
           "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
-          "gasLimit": web3.utils.toHex(new web3.utils.BN(Math.round(estimateGas + (estimateGas * 0.2))))
+          "gasLimit": 100000 // web3.utils.toHex(new web3.utils.BN(Math.round(estimateGas + (estimateGas * 0.2))))
         };
 
         callback();
