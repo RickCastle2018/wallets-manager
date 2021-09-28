@@ -73,12 +73,12 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
           const serializedTrans = tx.serialize();
           const raw = '0x' + serializedTrans.toString('hex');
 
-          web3.eth.sendSignedTransaction(raw).once('transactionHash', (hash) => {
+          web3.eth.sendSignedTransaction(raw, (hash) => {
             // ignore this transaction, no webhook, because it caused by Game
             requestedTransactions.push(hash);
-          }).on('confirmation', (confNumber, receipt) => {
+          }).once('receipt', (receipt) => {
 
-            transaction.user.getBalance((err, b) => {
+            transaction.user.getBalance((b) => {
               const webhook = {
                 "transaction_id": transaction.id,
                 "type": transaction.type,
