@@ -47,16 +47,13 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
 
       const measureTx = {
         "from": from.address,
-        "nonce": web3.utils.toHex(txCount),
-        "to": process.env.COIN_CONTRACT,
-        "data": data,
         "value": web3.utils.toHex(0),
         "gasPrice": web3.utils.toHex(gasPrice),
-        "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
+        "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID)
       };
 
       coin.methods.transfer(to.address, amount).estimateGas(measureTx, (err, estimateGas) => {
-
+        
         if (err) return callback(err);
 
         const txObject = {
@@ -67,12 +64,13 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
           "value": web3.utils.toHex(0),
           "gasPrice": web3.utils.toHex(gasPrice),
           "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID),
-          "gasLimit": web3.utils.toHex(Math.round(estimateGas + (estimateGas * 0.2)))
+          "gasLimit": web3.utils.toHex(new web3.utils.BN(Math.round(estimateGas + (estimateGas * 0.2))))
         };
 
         callback();
-
+                
         if (!transaction.dry) {
+
           const tx = new Tx(txObject, {
             common
           });
@@ -86,6 +84,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
             // ignore this transaction, no webhook, because it caused by Game
             requestedTransactions.push(hash);
           }).once('receipt', (receipt) => {
+
             transaction.user.getBalance((b) => {
 
               const webhook = {
@@ -255,12 +254,12 @@ userWalletSchema.methods.getBalance = function (callback) {
   });
 };
 userWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipient, callback) {
-  transferCoin(this, recipient, amount, {
+  const user = {
+    address: recipient
+  };
+  transferCoin(this, user, amount, {
     "id": gameTransactionId,
-    "user": {
-      "idInGame": 0,
-      "address": this.address
-    },
+    "user": this,
     "type": 'withdraw',
     "dry": false
   }, (err) => {
@@ -268,7 +267,10 @@ userWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, rec
   });
 };
 userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipient, callback) {
-  transferBNB(this, recipient, amount, {
+  const user = {
+    address: recipient
+  };
+  transferBNB(this, user, amount, {
     "id": gameTransactionId,
     "user": this,
     "type": 'withdraw',
@@ -420,14 +422,21 @@ gameWalletSchema.methods.getBalance = function (callback) {
 };
 gameWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipientGameId, callback) {
   loadUserWallet(recipientGameId, (uW) => {
-    transferCoin(this, uW, amount, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": "exit",
-      "dry": false
-    }, (err) => {
-      callback(err);
-    });
+    if (uW) {
+      transferCoin(this, uW, amount, {
+        "id": gameTransactionId,
+        "user": {
+          "idInGame": 0,
+          "address": this.address
+        },
+        "type": "exit",
+        "dry": false
+      }, (err) => {
+        callback(err);
+      });
+    } else {
+      callback("recipient not provided");
+    }
   });
 };
 gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipientGameId, callback) {
@@ -435,7 +444,10 @@ gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
     if (uW) {
       transferBNB(this, uW, amount, {
         "id": gameTransactionId,
-        "user": this,
+        "user": {
+          "idInGame": 0,
+          "address": this.address
+        },
         "type": "exit",
         "dry": false
       }, (err) => {
@@ -451,7 +463,10 @@ gameWalletSchema.methods.buy = function (gameTransactionId, amount, depositorGam
     if (uW) {
     transferCoin(uW, this, amount, {
       "id": gameTransactionId,
-      "user": this,
+      "user": {
+        "idInGame": 0,
+        "address": this.address
+      },
       "type": 'purchase',
       "dry": false
     }, (err) => {
