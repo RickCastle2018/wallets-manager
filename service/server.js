@@ -43,7 +43,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
     web3.eth.getGasPrice().then((gasPrice) => {
 
-      const data = coin.methods.transfer(to.address, amount);
+      const data = coin.methods.transfer(to.address, amount.toString());
 
       const measureTx = {
         "from": from.address,
@@ -52,7 +52,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
         "chain": web3.utils.toHex(process.env.BLOCKCHAIN_ID)
       };
 
-      coin.methods.transfer(to.address, amount).estimateGas(measureTx, (err, estimateGas) => {
+      coin.methods.transfer(to.address, amount.toString()).estimateGas(measureTx, (err, estimateGas) => {
         
         if (err) return callback(err);
 
