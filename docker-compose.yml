@@ -21,10 +21,10 @@ services:
       DB_NAME: wallets-mainnet
       BLOCKCHAIN_ID: 56
       BLOCKCHAIN_NODE: https://bsc-dataseed.binance.org/
-      COIN_CONTRACT: "0xa99fdf82aa3f22416ac2db749b4ce830870383ff"
-      BNB_PRICE: 1000 # OGLC COINS
-      EXCHANGE_FEE: 0.05 # = 5%
-      WEBHOOKS_LISTENER: https://ogle.money/api/wallet/Chai4aichie7ce2imiesiJ4osheenaeyaeGahShe
+      COIN_CONTRACT: "0x0d00758eb18d38a70f09fce1e1fc551c7e189fe8"
+      BNB_PRICE: ${BNB_PRICE}
+      EXCHANGE_FEE: ${EXCHANGE_FEE}
+      WEBHOOKS_LISTENER: ${WEBHOOKS_LISTENER}
     volumes:
       - ./service:/service
     ports:

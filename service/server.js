@@ -1,8 +1,7 @@
 'use strict';
 
-// TODO: Write backuper.sh
-// TODO: Store variables in separate gitignore .env file
-// TODO: Logs to file
+// TODO: logging into file
+// TODO: refactor: promises - use async/await, migrate to Typescript (just start), divide code in modules, livereload (dev)
 
 const Tx = require('ethereumjs-tx').Transaction;
 const Common = require('@ethereumjs/common');
@@ -271,7 +270,6 @@ userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
     callback(err);
   });
 };
-// TODO: calculate exchange/withdraw possibility functions (on/off flag in config)
 userWalletSchema.methods.exchangeCoin = function (gameTransactionId, coins, dry, callback) {
   loadGameWallet((gW) => {
 
@@ -570,7 +568,7 @@ conn.once('open', () => {
       fee: process.env.EXCHANGE_FEE
     });
   });
-  // TODO: Remove double
+  // TODO: Remove repeated code
   app.post('/user-wallets/:idInGame/exchange/dry', (req, res) => {
     switch (req.body.currency) {
       case 'oglc':

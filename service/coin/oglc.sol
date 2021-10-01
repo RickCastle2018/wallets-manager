@@ -352,7 +352,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
     _name = "Ogle Coin";
     _symbol = "OGLC";
     _decimals = 18;
-    _totalSupply = 2718281828459*(10**uint256(_decimals));
+    _totalSupply = 271828182*(10**uint256(_decimals));
     _balances[msg.sender] = _totalSupply;
 
     emit Transfer(address(0), msg.sender, _totalSupply);
