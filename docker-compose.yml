@@ -17,6 +17,7 @@ services:
     container_name: 'wallets-manager-service'
     build: ./service
     environment:
+      NODE_ENV: ${ENV} 
       PORT: 2311
       DB_NAME: wallets-mainnet
       BLOCKCHAIN_ID: 56

@@ -1,7 +1,6 @@
 'use strict';
 
-// TODO: logging into file
-// TODO: refactor: promises - use async/await, migrate to Typescript (just start), divide code in modules, livereload (dev)
+// TODO: refactor: promises - use async/await, migrate to Typescript (just start), divide code in modules, livereload (dev), context instead of many parameters
 
 const Tx = require('ethereumjs-tx').Transaction;
 const Common = require('@ethereumjs/common');
@@ -11,6 +10,10 @@ const mongoose = require('mongoose');
 const express = require('express');
 const fs = require('fs');
 const BigNumber = require('bignumber.js');
+
+// TODO: Logging
+const winston = require('winston');
+const expressWinston = require('express-winston');
 
 // Connect to Binance Smart Chain and coins' smart contract
 const web3 = new Web3(process.env.BLOCKCHAIN_NODE);
@@ -415,10 +418,7 @@ gameWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, rec
     if (uW) {
       transferCoin(this, uW, amount, {
         "id": gameTransactionId,
-        "user": {
-          "idInGame": 0,
-          "address": this.address
-        },
+        "user": this,
         "type": "exit",
         "dry": false
       }, (err) => {
@@ -434,10 +434,7 @@ gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
     if (uW) {
       transferBNB(this, uW, amount, {
         "id": gameTransactionId,
-        "user": {
-          "idInGame": 0,
-          "address": this.address
-        },
+        "user": this,
         "type": "exit",
         "dry": false
       }, (err) => {
@@ -453,10 +450,7 @@ gameWalletSchema.methods.buy = function (gameTransactionId, amount, depositorGam
     if (uW) {
       transferCoin(uW, this, amount, {
         "id": gameTransactionId,
-        "user": {
-          "idInGame": 0,
-          "address": this.address
-        },
+        "user": this,
         "type": 'purchase',
         "dry": false
       }, (err) => {
@@ -641,7 +635,7 @@ conn.once('open', () => {
   });
   app.post('/game-wallet/buy', (req, res) => {
     req.gameWallet.buy(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
-      if (!err) return res.status(500).send(err);
+      if (err) return res.status(500).send(err);
       res.status(200).send();
     });
   });
