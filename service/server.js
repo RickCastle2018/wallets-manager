@@ -510,7 +510,7 @@ function loadGameWallet(callback) {
 
 // Start mongoose connection
 const dbName = process.env.DB_NAME;
-mongoose.connect('mongodb://db:27017/' + dbName, {
+mongoose.connect('mongodb://127.0.0.1:27017/' + dbName, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
