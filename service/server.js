@@ -161,7 +161,12 @@ function transferBNB(from, to, amount, transaction, callback) {
                     "address": transaction.user.address
                   }
                 };
-
+                
+                console.log({
+                  method: 'post',
+                  url: process.env.WEBHOOKS_LISTENER,
+                  data: webhook
+                });
                 axios({
                   method: 'post',
                   url: process.env.WEBHOOKS_LISTENER,
