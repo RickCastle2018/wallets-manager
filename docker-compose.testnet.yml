@@ -11,6 +11,7 @@ services:
       MONGO_INITDB_DATABASE: wallets-testnet
     volumes:
       - ./db/data:/data/db
+    network_mode: "host"
 
   service:
     container_name: 'wallets-manager-service'

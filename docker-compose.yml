@@ -12,6 +12,7 @@ services:
     volumes:
       - ./db/data:/data/db
     restart: always
+    network_mode: "host"
 
   service:
     container_name: 'wallets-manager-service'
