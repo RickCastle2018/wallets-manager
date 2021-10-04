@@ -15,6 +15,7 @@ services:
   service:
     container_name: 'wallets-manager-service'
     build: ./service
+    network_mode: "host"
     environment:
       NODE_ENV: ${ENV} 
       PORT: 2311
@@ -27,7 +28,7 @@ services:
       WEBHOOKS_LISTENER: ${WEBHOOKS_LISTENER}
     volumes:
       - ./service:/service
-    ports:
-      - 2311:2311
+    # ports:
+    #   - 2311:2311
     depends_on:
       - db
