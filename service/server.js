@@ -9,7 +9,6 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const express = require('express');
 const fs = require('fs');
-const BigNumber = require('bignumber.js');
 
 // TODO: Logging
 const winston = require('winston');
@@ -274,74 +273,80 @@ userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
   });
 };
 userWalletSchema.methods.exchangeCoin = function (gameTransactionId, coins, dry, callback) {
-  loadGameWallet((gW) => {
+  return callback("not implemented");
 
-    const bigCoins = new BigNumber(coins);
-    const bnb = bigCoins.dividedBy(process.env.BNB_PRICE).minus(bigCoins.multipliedBy(process.env.EXCHANGE_FEE));
+  // loadGameWallet((gW) => {
 
-    transferBNB(this, gW, bnb, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": "exchange",
-      "dry": dry
-    }, (err) => {
-      if (!err) {
-        transferCoin(gW, this, coins, {
-          "id": gameTransactionId,
-          "user": this,
-          "type": 'exchange',
-          "dry": dry
-        }, (err) => {
-          if (!err) {
-            callback(undefined, {
-              amount: bnb.toString(),
-              fee: bigCoins.multipliedBy(process.env.EXCHANGE_FEE).toString()
-            });
-          } else {
-            callback(err);
-          }
-        });
-      } else {
-        callback(err);
-      }
-    });
+  //   const bigCoins = new web3.utils.BN(coins);
+  //   console.log(bigCoins.toString());
+  //   const bnb = bigCoins.divn(parseInt(process.env.BNB_PRICE));//.neg(bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)))
+  //   console.log(bnb.toString());
 
-  });
+  //   transferBNB(this, gW, bnb, {
+  //     "id": gameTransactionId,
+  //     "user": this,
+  //     "type": "exchange",
+  //     "dry": dry
+  //   }, (err) => {
+  //     if (!err) {
+  //       transferCoin(gW, this, coins, {
+  //         "id": gameTransactionId,
+  //         "user": this,
+  //         "type": 'exchange',
+  //         "dry": dry
+  //       }, (err) => {
+  //         if (!err) {
+  //           callback(undefined, {
+  //             amount: bnb.toString(),
+  //             fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
+  //           });
+  //         } else {
+  //           callback(err);
+  //         }
+  //       });
+  //     } else {
+  //       callback(err);
+  //     }
+  //   });
+
+  // });
 };
 userWalletSchema.methods.exchangeBNB = function (gameTransactionId, bnb, dry, callback) {
-  loadGameWallet((gW) => {
+  return callback("not implemented");
 
-    const bigBNB = new BigNumber(bnb);
-    const coins = bigBNB.multipliedBy(process.env.BNB_PRICE).minus(bigBNB.multipliedBy(process.env.EXCHANGE_FEE));
+  // loadGameWallet((gW) => {
 
-    transferBNB(this, gW, bnb, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": "exchange",
-      "dry": dry
-    }, (err) => {
-      if (!err) {
-        transferCoin(gW, this, coins, {
-          "id": gameTransactionId,
-          "user": this,
-          "type": 'exchange',
-          "dry": dry
-        }, (err) => {
-          if (!err) {
-            callback(undefined, {
-              amount: coins,
-              fee: bigBNB.multipliedBy(process.env.EXCHANGE_FEE).toString
-            });
-          } else {
-            callback(err);
-          }
-        });
-      } else {
-        callback(err);
-      }
-    });
+  //   const bigBNB = new web3.utils.BN(bnb);
+  //   const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE));
 
-  });
+  //   transferBNB(this, gW, bnb, {
+  //     "id": gameTransactionId,
+  //     "user": this,
+  //     "type": "exchange",
+  //     "dry": dry
+  //   }, (err) => {
+  //     if (!err) {
+  //       transferCoin(gW, this, coins, {
+  //         "id": gameTransactionId,
+  //         "user": this,
+  //         "type": 'exchange',
+  //         "dry": dry
+  //       }, (err) => {
+  //         if (!err) {
+  //           callback(undefined, {
+  //             amount: coins,
+  //             fee: bigBNB.multipliedBy(process.env.EXCHANGE_FEE).toString
+  //           });
+  //         } else {
+  //           callback(err);
+  //         }
+  //       });
+  //     } else {
+  //       callback(err);
+  //     }
+  //   });
+
+  // });
 };
 const UserWallet = mongoose.model('UserWallet', userWalletSchema);
 
@@ -445,10 +450,26 @@ gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
     }
   });
 };
-gameWalletSchema.methods.buy = function (gameTransactionId, amount, depositorGameId, callback) {
+gameWalletSchema.methods.buyWithCoin = function (gameTransactionId, amount, depositorGameId, callback) {
   loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
       transferCoin(uW, this, amount, {
+        "id": gameTransactionId,
+        "user": this,
+        "type": 'purchase',
+        "dry": false
+      }, (err) => {
+        callback(err);
+      });
+    } else {
+      callback("no recipient provided");
+    }
+  });
+};
+gameWalletSchema.methods.buyWithBNB = function (gameTransactionId, amount, depositorGameId, callback) {
+  loadUserWallet(depositorGameId, (uW) => {
+    if (uW) {
+      transferBNB(uW, this, amount, {
         "id": gameTransactionId,
         "user": this,
         "type": 'purchase',
@@ -634,10 +655,23 @@ conn.once('open', () => {
     }
   });
   app.post('/game-wallet/buy', (req, res) => {
-    req.gameWallet.buy(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send();
-    });
+    switch (req.body.currency) {
+      case 'bnb':
+        req.gameWallet.buyWithBNB(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
+          if (err) return res.status(500).send(err);
+          res.status(200).send();
+        });
+        break;
+      // TODO: name depend on .env
+      case 'oglc':
+        req.gameWallet.buyWithCoin(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
+          if (err) return res.status(500).send(err);
+          res.status(200).send();
+        });
+        break;
+      default:
+        res.status(500).send('no currency provided');
+    }
   });
 
   app.listen(process.env.PORT, () => {
