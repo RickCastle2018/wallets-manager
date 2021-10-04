@@ -1,6 +1,6 @@
 {
   "name": "wallets-manager",
-  "version": "0.4.3p",
+  "version": "0.4.3",
   "description": "Seastate Games Wallets-Manager",
   "main": "server.js",
   "scripts": {
