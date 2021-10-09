@@ -1,3 +1,5 @@
+// TODO: AUTOMATIZE
+
 const axios = require('axios');
 
 axios({

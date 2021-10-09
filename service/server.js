@@ -161,7 +161,7 @@ function transferBNB(from, to, amount, transaction, callback) {
                     "address": transaction.user.address
                   }
                 };
-                
+
                 axios({
                   method: 'post',
                   url: process.env.WEBHOOKS_LISTENER,
@@ -183,7 +183,6 @@ function transferBNB(from, to, amount, transaction, callback) {
 }
 
 function listenRefills() {
-  // TODO: Setup own websockets node
   // TODO: Listen only for our user-wallets
   let options = {
     filter: {
@@ -272,81 +271,80 @@ userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
     callback(err);
   });
 };
-userWalletSchema.methods.exchangeCoin = function (gameTransactionId, coins, dry, callback) {
-  return callback("not implemented");
+userWalletSchema.methods.calculateExchange = function (amount, currencyFrom, callback) {
+  loadGameWallet((gW) => {
 
-  // loadGameWallet((gW) => {
+    if (currencyFrom == 'bnb') {
+      const bnb = bigCoins.divn(parseInt(process.env.BNB_PRICE)); //.neg(bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)))
+    } else {
+      const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE));
+    }
 
-  //   const bigCoins = new web3.utils.BN(coins);
-  //   console.log(bigCoins.toString());
-  //   const bnb = bigCoins.divn(parseInt(process.env.BNB_PRICE));//.neg(bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)))
-  //   console.log(bnb.toString());
+    callback();
 
-  //   transferBNB(this, gW, bnb, {
-  //     "id": gameTransactionId,
-  //     "user": this,
-  //     "type": "exchange",
-  //     "dry": dry
-  //   }, (err) => {
-  //     if (!err) {
-  //       transferCoin(gW, this, coins, {
-  //         "id": gameTransactionId,
-  //         "user": this,
-  //         "type": 'exchange',
-  //         "dry": dry
-  //       }, (err) => {
-  //         if (!err) {
-  //           callback(undefined, {
-  //             amount: bnb.toString(),
-  //             fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
-  //           });
-  //         } else {
-  //           callback(err);
-  //         }
-  //       });
-  //     } else {
-  //       callback(err);
-  //     }
-  //   });
+    transferBNB(this, gW, bnb, {
+      "id": gameTransactionId,
+      "user": this,
+      "type": "exchange",
+      "dry": true
+    }, (err) => {
+      if (!err) {
+        transferCoin(gW, this, coins, {
+          id: gameTransactionId,
+          user: this,
+          type: 'exchange',
+          dry: true
+        }, (err) => {
+          if (!err) {
+            callback(undefined, {
+              amount: bnb.toString(),
+              fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
+            });
+          } else {
+            callback(err);
+          }
+        });
+      } else {
+        callback(err);
+      }
+    });
 
-  // });
-};
-userWalletSchema.methods.exchangeBNB = function (gameTransactionId, bnb, dry, callback) {
-  return callback("not implemented");
+  });
 
-  // loadGameWallet((gW) => {
+}
+userWalletSchema.methods.exchange = function (transaction, callback) {
+  loadGameWallet((gW) => {
 
-  //   const bigBNB = new web3.utils.BN(bnb);
-  //   const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE));
+    let sender = {};
+    if (transaction.currency == 'bnb') {
+      sender.bnb = this;
+      sender.oglc = gW;
+    } else {
+      sender.bnb = gW;
+      sender.oglc = this;
+    }
 
-  //   transferBNB(this, gW, bnb, {
-  //     "id": gameTransactionId,
-  //     "user": this,
-  //     "type": "exchange",
-  //     "dry": dry
-  //   }, (err) => {
-  //     if (!err) {
-  //       transferCoin(gW, this, coins, {
-  //         "id": gameTransactionId,
-  //         "user": this,
-  //         "type": 'exchange',
-  //         "dry": dry
-  //       }, (err) => {
-  //         if (!err) {
-  //           callback(undefined, {
-  //             amount: coins,
-  //             fee: bigBNB.multipliedBy(process.env.EXCHANGE_FEE).toString
-  //           });
-  //         } else {
-  //           callback(err);
-  //         }
-  //       });
-  //     } else {
-  //       callback(err);
-  //     }
-  //   });
+    transferBNB(sender.bnb, sender.oglc, transaction.bnb, {
+      id: transaction.id,
+      user: this,
+      type: 'exchange',
+      dry: false
+    }, (err) => {
+      callback(err);
+    });
 
-  // });
+    transferCoin(sender.oglc, sender.bnb, transaction.oglc, {
+      id: transaction.id,
+      user: this,
+      type: 'exchange',
+      dry: false
+    }, (err) => {
+      callback(err);
+    });
+
+    callback();
+
+  });
 };
 const UserWallet = mongoose.model('UserWallet', userWalletSchema);
 
@@ -422,10 +420,10 @@ gameWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, rec
   loadUserWallet(recipientGameId, (uW) => {
     if (uW) {
       transferCoin(this, uW, amount, {
-        "id": gameTransactionId,
-        "user": this,
-        "type": "exit",
-        "dry": false
+        id: gameTransactionId,
+        user: this,
+        type: "exit",
+        dry: false
       }, (err) => {
         callback(err);
       });
@@ -438,10 +436,10 @@ gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
   loadUserWallet(recipientGameId, (uW) => {
     if (uW) {
       transferBNB(this, uW, amount, {
-        "id": gameTransactionId,
-        "user": this,
-        "type": "exit",
-        "dry": false
+        id: gameTransactionId,
+        user: this,
+        type: 'exit',
+        dry: false
       }, (err) => {
         callback(err);
       });
@@ -454,10 +452,10 @@ gameWalletSchema.methods.buyWithCoin = function (gameTransactionId, amount, depo
   loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
       transferCoin(uW, this, amount, {
-        "id": gameTransactionId,
-        "user": this,
-        "type": 'purchase',
-        "dry": false
+        id: gameTransactionId,
+        user: this,
+        type: 'purchase',
+        dry: false
       }, (err) => {
         callback(err);
       });
@@ -470,10 +468,10 @@ gameWalletSchema.methods.buyWithBNB = function (gameTransactionId, amount, depos
   loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
       transferBNB(uW, this, amount, {
-        "id": gameTransactionId,
-        "user": this,
-        "type": 'purchase',
-        "dry": false
+        id: gameTransactionId,
+        user: this,
+        type: 'purchase',
+        dry: false
       }, (err) => {
         callback(err);
       });
@@ -662,7 +660,6 @@ conn.once('open', () => {
           res.status(200).send();
         });
         break;
-      // TODO: name depend on .env
       case 'oglc':
         req.gameWallet.buyWithCoin(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
           if (err) return res.status(500).send(err);
@@ -673,6 +670,21 @@ conn.once('open', () => {
         res.status(500).send('no currency provided');
     }
   });
+
+  app.use(expressWinston.errorLogger({
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({
+        name: 'access-file',
+        filename: 'error.log',
+        level: 'info'
+      })
+    ],
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.json()
+    )
+  }));
 
   app.listen(process.env.PORT, () => {
     console.log(`wallets-manager running at http://127.0.0.1:${process.env.PORT}`);
