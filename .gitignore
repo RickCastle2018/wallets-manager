@@ -1,4 +1,4 @@
 /db/data/*
 /db/backups/*
 /service/node_modules
-/service/.env
+.env
