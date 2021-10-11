@@ -81,21 +81,20 @@ app.listen(80, async () => {
     console.error(err.response.data);
   }
 
-
-  // try {
-  //   const res = await axios({
-  //       method: 'post',
-  //       url: 'http://127.0.0.1:2311/user-wallets/1/withdraw',
-  //       data: {
-  //         transaction_id: 2,
-  //         amount: '1115999889999800',
-  //         to: '0xFFAC005A8f7EC4e9943b2C8e7991C72f5cec4fD1', // idInGame
-  //         currency: 'oglc' // oglc or bnb
-  //       }
-  //   });
-  //   console.log(res.data);
-  // } catch (err) {
-  //   console.error(err.response.data);
-  // }
+  try {
+    const res = await axios({
+        method: 'post',
+        url: 'http://127.0.0.1:2311/user-wallets/1/withdraw',
+        data: {
+          transaction_id: 2,
+          amount: '1115999889999800',
+          to: '0xFFAC005A8f7EC4e9943b2C8e7991C72f5cec4fD1', // idInGame
+          currency: 'oglc' // oglc or bnb
+        }
+    });
+    console.log(res.data);
+  } catch (err) {
+    console.error(err.response.data);
+  }
 
 });

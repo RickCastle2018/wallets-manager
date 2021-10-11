@@ -16,7 +16,7 @@ const expressWinston = require('express-winston');
 
 // Connect to Binance Smart Chain and coins' smart contract
 const web3 = new Web3(process.env.BLOCKCHAIN_NODE);
-const abi = JSON.parse(fs.readFileSync('./coin/oglc.json', 'utf8'));
+const abi = JSON.parse(fs.readFileSync('./coin/contracts/oglc.json', 'utf8'));
 const coin = new web3.eth.Contract(abi, process.env.COIN_CONTRACT);
 
 const common = Common.default.forCustomChain('mainnet', {
