@@ -272,44 +272,46 @@ userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
   });
 };
 userWalletSchema.methods.calculateExchange = function (amount, currencyFrom, callback) {
-  loadGameWallet((gW) => {
+  return callback('not implemented');
 
-    if (currencyFrom == 'bnb') {
-      const bnb = bigCoins.divn(parseInt(process.env.BNB_PRICE)); //.neg(bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)))
-    } else {
-      const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE));
-    }
-
-    callback();
-
-    transferBNB(this, gW, bnb, {
-      "id": gameTransactionId,
-      "user": this,
-      "type": "exchange",
-      "dry": true
-    }, (err) => {
-      if (!err) {
-        transferCoin(gW, this, coins, {
-          id: gameTransactionId,
-          user: this,
-          type: 'exchange',
-          dry: true
-        }, (err) => {
-          if (!err) {
-            callback(undefined, {
-              amount: bnb.toString(),
-              fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
-            });
-          } else {
-            callback(err);
-          }
-        });
-      } else {
-        callback(err);
-      }
-    });
-
-  });
+  // loadGameWallet((gW) => {
+  //
+  //   if (currencyFrom == 'bnb') {
+  //     const bnb = bigCoins.divn(parseInt(process.env.BNB_PRICE)); //.neg(bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)))
+  //   } else {
+  //     const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE));
+  //   }
+  //
+  //   callback();
+  //
+  //   transferBNB(this, gW, bnb, {
+  //     "id": gameTransactionId,
+  //     "user": this,
+  //     "type": "exchange",
+  //     "dry": true
+  //   }, (err) => {
+  //     if (!err) {
+  //       transferCoin(gW, this, coins, {
+  //         id: gameTransactionId,
+  //         user: this,
+  //         type: 'exchange',
+  //         dry: true
+  //       }, (err) => {
+  //         if (!err) {
+  //           callback(undefined, {
+  //             amount: bnb.toString(),
+  //             fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
+  //           });
+  //         } else {
+  //           callback(err);
+  //         }
+  //       });
+  //     } else {
+  //       callback(err);
+  //     }
+  //   });
+  //
+  // });
 
 }
 userWalletSchema.methods.exchange = function (transaction, callback) {
@@ -355,7 +357,7 @@ function createUserWallet(userIdInGame, callback) {
   }, (err, foundWallet) => {
 
     if (err) {
-      callback(foundWallet);
+      callback(false, 'already exists');
     } else {
 
       let account = web3.eth.accounts.create();
@@ -380,7 +382,7 @@ function loadUserWallet(userIdInGame, callback) {
   UserWallet.findOne({
     idInGame: userIdInGame
   }, (err, uW) => {
-    if (err) return console.error(err);
+    if (err) return callback(false);
     callback(uW);
   });
 }
@@ -532,7 +534,8 @@ conn.once('open', () => {
 
   // user-wallets
   app.put('/user-wallets/:idInGame', (req, res) => {
-    createUserWallet(req.params.idInGame, (uW) => {
+    createUserWallet(req.params.idInGame, (uW, data) => {
+      if (uW == false) return res.send(data);
       res.send({
         address: uW.address
       });
