@@ -563,13 +563,13 @@ conn.once('open', () => {
     switch (req.body.currency) {
       case 'bnb':
         req.userWallet.withdrawBNB(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.status(200).send();
         });
         break;
       case 'oglc':
         req.userWallet.withdrawCoin(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.status(200).send();
         });
         break;
@@ -589,13 +589,13 @@ conn.once('open', () => {
     switch (req.body.currency) {
       case 'oglc':
         req.userWallet.exchangeCoin(req.body.transaction_id, req.body.amount, true, (err, data) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.send(data);
         });
         break;
       case 'bnb':
         req.userWallet.exchangeBNB(req.body.transaction_id, req.body.amount, true, (err, data) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.send(data);
         });
         break;
@@ -607,13 +607,13 @@ conn.once('open', () => {
     switch (req.body.currency) {
       case 'oglc':
         req.userWallet.exchangeCoin(req.body.transaction_id, req.body.amount, false, (err, data) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.send(data);
         });
         break;
       case 'bnb':
         req.userWallet.exchangeBNB(req.body.transaction_id, req.body.amount, false, (err, data) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.send(data);
         });
         break;
@@ -641,13 +641,13 @@ conn.once('open', () => {
     switch (req.body.currency) {
       case 'bnb':
         req.gameWallet.withdrawBNB(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.status(200).send();
         });
         break;
       case 'oglc':
         req.gameWallet.withdrawCoin(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.status(200).send();
         });
         break;
@@ -659,13 +659,13 @@ conn.once('open', () => {
     switch (req.body.currency) {
       case 'bnb':
         req.gameWallet.buyWithBNB(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.status(200).send();
         });
         break;
       case 'oglc':
         req.gameWallet.buyWithCoin(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).send(err.message);
           res.status(200).send();
         });
         break;
