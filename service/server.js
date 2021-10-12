@@ -59,7 +59,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
         "gasLimit": web3.utils.toHex(100000)
       };
 
-      coin.methods.transfer(to.address, new web3.utils.BN(amount)).estimateGas(txObject, (err, estimateGas) => {
+      coin.methods.transfer(to.address, new web3.utils.BN(amount)).estimateGas(txObject, (err) => {
         // txObject.gasLimit = web3.utils.toHex(estimateGas);
         if (err) return callback(err);
         callback();
@@ -354,12 +354,9 @@ function createUserWallet(userIdInGame, callback) {
 
   UserWallet.findOne({
     idInGame: userIdInGame
-  }, (err, foundWallet) => {
+  }, (err) => {
 
     if (err) {
-      callback(false, 'already exists');
-    } else {
-
       let account = web3.eth.accounts.create();
       let userWallet = new UserWallet({
         createdDate: new Date(),
@@ -373,6 +370,8 @@ function createUserWallet(userIdInGame, callback) {
         }
       );
 
+    } else {
+      callback(false, 'already exists');
     }
 
   });
