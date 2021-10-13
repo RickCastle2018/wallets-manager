@@ -1,4 +1,4 @@
-import Transaction from '@ethereumjs/tx';
+import ethertx from '@ethereumjs/tx'
 import Common from '@ethereumjs/common';
 import axios from 'axios';
 import web3 from './web3.js';
@@ -7,7 +7,8 @@ import coin from './coin.js';
 const common = Common.default.forCustomChain('mainnet', {
   name: 'bnb',
   networkId: process.env.BLOCKCHAIN_ID,
-  chainId: process.env.BLOCKCHAIN_ID
+  chainId: process.env.BLOCKCHAIN_ID,
+  chain: process.env.BLOCKCHAIN_ID
 }, 'petersburg');
 
 const defaultCommon = {
@@ -46,7 +47,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
         callback();
 
         if (!transaction.dry) {
-          const tx = new Transaction(txObject, {
+          const tx = ethertx.Transaction.fromTxData(txObject, {
             common
           });
           const privateKey = Buffer.from(from.privateKey.slice(2), 'hex');
@@ -57,7 +58,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
 
           web3.eth.sendSignedTransaction(raw, (hash) => {
             // ignore this transaction, no webhook, because it caused by Game
-            requestedTransactions.push(hash);
+            // requestedTransactions.push(hash);
           }).once('receipt', (receipt) => {
 
             transaction.user.getBalance((b) => {
@@ -65,6 +66,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
                 "transaction_id": transaction.id,
                 "type": transaction.type,
                 "successful": receipt.status,
+                "gasPaid": receipt.gasUsed,
                 "user": {
                   "id": transaction.user.idInGame,
                   "balance": b,
@@ -79,7 +81,21 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
               });
             });
 
+          }).on('error', function(error){
+            const webhook = {
+              "transaction_id": transaction.id,
+              "type": transaction.type,
+              "successful": false,
+              "error": error.message
+            };
+
+            axios({
+              method: 'post',
+              url: process.env.WEBHOOKS_LISTENER,
+              data: webhook
+            });
           });
+
         }
       });
 
@@ -117,25 +133,25 @@ function transferBNB(from, to, amount, transaction, callback) {
 
           if (!transaction.dry) {
 
-            const tx = new Transaction(txObject, {
+            const tx = ethertx.Transaction.fromTxData(txObject, {
               common
             });
             const privateKey = Buffer.from(from.privateKey.slice(2), 'hex');
-            tx.sign(privateKey);
+            const signedTx = tx.sign(privateKey);
 
-            const serializedTrans = tx.serialize();
+            const serializedTrans = signedTx.serialize();
             const raw = '0x' + serializedTrans.toString('hex');
 
             web3.eth.sendSignedTransaction(raw, (hash) => {
               // ignore this transaction, no webhook, because it caused by Game
-              requestedTransactions.push(hash);
+              // requestedTransactions.push(hash);
             }).once('receipt', (receipt) => {
-
               transaction.user.getBalance((b) => {
                 const webhook = {
                   "transaction_id": transaction.id,
                   "type": transaction.type,
                   "successful": receipt.status,
+                  "gasPaid": receipt.gasUsed,
                   "user": {
                     "id": transaction.user.idInGame,
                     "balance": b,
@@ -150,6 +166,19 @@ function transferBNB(from, to, amount, transaction, callback) {
                 });
               });
 
+            }).on('error', function(error){
+              const webhook = {
+                "transaction_id": transaction.id,
+                "type": transaction.type,
+                "successful": false,
+                "error": error.message
+              };
+
+              axios({
+                method: 'post',
+                url: process.env.WEBHOOKS_LISTENER,
+                data: webhook
+              });
             });
 
           }

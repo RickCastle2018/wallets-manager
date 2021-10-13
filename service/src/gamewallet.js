@@ -19,7 +19,7 @@ gameWalletSchema.methods.getBalance = function (callback) {
   });
 };
 gameWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipientGameId, callback) {
-  loadUserWallet(recipientGameId, (uW) => {
+  walletmethods.loadUserWallet(recipientGameId, (uW) => {
     if (uW) {
       transfer.transferCoin(this, uW, amount, {
         id: gameTransactionId,
@@ -35,7 +35,7 @@ gameWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, rec
   });
 };
 gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipientGameId, callback) {
-  loadUserWallet(recipientGameId, (uW) => {
+  walletmethods.loadUserWallet(recipientGameId, (uW) => {
     if (uW) {
       transfer.transferBNB(this, uW, amount, {
         id: gameTransactionId,
@@ -51,7 +51,7 @@ gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, reci
   });
 };
 gameWalletSchema.methods.buyWithCoin = function (gameTransactionId, amount, depositorGameId, callback) {
-  loadUserWallet(depositorGameId, (uW) => {
+  walletmethods.loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
       transfer.transferCoin(uW, this, amount, {
         id: gameTransactionId,
@@ -67,7 +67,7 @@ gameWalletSchema.methods.buyWithCoin = function (gameTransactionId, amount, depo
   });
 };
 gameWalletSchema.methods.buyWithBNB = function (gameTransactionId, amount, depositorGameId, callback) {
-  loadUserWallet(depositorGameId, (uW) => {
+  walletmethods.loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
       transfer.transferBNB(uW, this, amount, {
         id: gameTransactionId,
