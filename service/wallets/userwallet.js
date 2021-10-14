@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import coin from './coin.js';
 import web3 from './web3.js';
 import transfer from './transfer.js';
-import walletmethods from './walletmethods.js';
+import walletmethods from './wallets/methods.js';
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,

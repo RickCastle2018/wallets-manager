@@ -1,9 +1,9 @@
 import UserWallet from './userwallets.js';
 import GameWallet from './gamewallet.js';
-import web3 from './web3.js';
+import web3 from '../web3.js';
 
 // user-wallets
-function createUserWallet(userIdInGame, callback) {
+export function createUserWallet(userIdInGame, callback) {
 
   UserWallet.findOne({
     idInGame: userIdInGame
@@ -29,7 +29,7 @@ function createUserWallet(userIdInGame, callback) {
 
   });
 }
-function loadUserWallet(userIdInGame, callback) {
+export function loadUserWallet(userIdInGame, callback) {
   UserWallet.findOne({
     idInGame: userIdInGame
   }, (err, uW) => {
@@ -37,7 +37,7 @@ function loadUserWallet(userIdInGame, callback) {
     callback(uW);
   });
 }
-function loadUserWalletId(address, callback) {
+export function loadUserWalletId(address, callback) {
   UserWallet.findOne({
     address: address
   }, (err, uW) => {
@@ -55,7 +55,7 @@ function loadUserWalletId(address, callback) {
 
 // game-wallets
 
-function loadGameWallet(callback) {
+export function loadGameWallet(callback) {
 
   GameWallet.find({}, function (err, gameWallets) {
     if (err) return console.error(err);
@@ -77,11 +77,4 @@ function loadGameWallet(callback) {
 
   });
 
-}
-
-export default {
-  createUserWallet,
-  loadUserWallet,
-  loadUserWalletId,
-  loadGameWallet
 }

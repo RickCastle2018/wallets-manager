@@ -1,8 +1,8 @@
 import ethertx from '@ethereumjs/tx'
 import Common from '@ethereumjs/common';
 import axios from 'axios';
-import web3 from './web3.js';
-import coin from './coin.js';
+import web3 from '../web3.js';
+import coin from '../coin/coin.js';
 
 const common = Common.default.forCustomChain('mainnet', {
   name: 'bnb',
@@ -22,7 +22,7 @@ const defaultCommon = {
 web3.eth.defaultCommon = defaultCommon;
 coin.defaultCommon = defaultCommon;
 
-function transferCoin(from, to, amount, transaction, callback) { // from is userWalletModel or gameWalletModel
+export function transferCoin(from, to, amount, transaction, callback) { // from is userWalletModel or gameWalletModel
 
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
 
@@ -104,7 +104,7 @@ function transferCoin(from, to, amount, transaction, callback) { // from is user
   });
 }
 
-function transferBNB(from, to, amount, transaction, callback) {
+export function transferBNB(from, to, amount, transaction, callback) {
   web3.eth.getTransactionCount(from.address, (err, txCount) => {
     web3.eth.getGasPrice().then((gasPrice) => {
 
@@ -191,5 +191,3 @@ function transferBNB(from, to, amount, transaction, callback) {
     });
   });
 }
-
-export default {transferCoin, transferBNB}

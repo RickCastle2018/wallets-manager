@@ -74,7 +74,17 @@ app.listen(80, () => {
         to: '0x24207D31F2439Bfa60B36154eB069198B8143337',
         currency: 'bnb'
       }
-    }
+    },
+    {
+      method: 'post',
+      url: 'http://127.0.0.1:2311/user-wallets/1/exchange',
+      data: {
+        transaction_id: 3,
+        amount: '1000000000',
+        to: '0x24207D31F2439Bfa60B36154eB069198B8143337',
+        currency: 'bnb'
+      }
+    },
   ]);
 
 });
