@@ -2,3 +2,4 @@
 /db/backups/*
 /service/node_modules
 .env
+README.md.backup
