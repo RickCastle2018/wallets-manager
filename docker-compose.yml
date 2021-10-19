@@ -30,8 +30,6 @@ services:
       WEBHOOKS_LISTENER: ${WEBHOOKS_LISTENER}
     volumes:
       - ./service:/service
-    # ports:
-    #   - 127.0.0.1:2311:2311 # 127.0.0.1 to make service availble onl locally
     depends_on:
       - db
     restart: always

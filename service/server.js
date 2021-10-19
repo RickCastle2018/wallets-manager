@@ -1,3 +1,4 @@
+import {createLogger, format, transports} from 'winston';
 import mongoose from 'mongoose';
 import express from 'express';
 
@@ -5,26 +6,16 @@ import * as uw from './api/userwallets.js';
 import * as gw from './api/gamewallet.js';
 import * as exchange from './api/exchange.js';
 
-// TODO: refactor: promises and async/await, optimize code repeating in handles
+const logger = createLogger({
+	transports: [
+		new transports.File({ filename: 'combined.log' })
+	]
+});
 
-// TODO: Logging
-// const winston = require('winston');
-// const expressWinston = require('express-winston');
-
-// app.use(expressWinston.errorLogger({
-//   transports: [
-//     new winston.transports.Console(),
-//     new winston.transports.File({
-//       name: 'access-file',
-//       filename: 'error.log',
-//       level: 'info'
-//     })
-//   ],
-//   format: winston.format.combine(
-//     winston.format.colorize(),
-//     winston.format.json()
-//   )
-// }));
+// Call exceptions.handle with a transport to handle exceptions
+logger.exceptions.handle(new transports.File({
+	filename: 'error.log'
+}));
 
 // Start mongoose connection
 mongoose.connect(`mongodb://127.0.0.1:27017/${process.env.DB_NAME}`, {

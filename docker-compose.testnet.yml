@@ -12,6 +12,7 @@ services:
     volumes:
       - ./db/data:/data/db
     network_mode: "host"
+    restart: unless-stopped
 
   service:
     container_name: 'wallets-manager-service'
@@ -29,7 +30,6 @@ services:
       WEBHOOKS_LISTENER: ${WEBHOOKS_LISTENER}
     volumes:
       - ./service:/service
-    # ports:
-    #   - 2311:2311
     depends_on:
       - db
+    restart: unless-stopped

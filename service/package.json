@@ -24,13 +24,13 @@
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
     "express": "^4.17.1",
-    "express-winston": "^4.2.0",
     "mongoose": "^5.13.7",
+    "node-cache": "^5.1.2",
     "web3": "^1.5.2",
     "winston": "^3.3.3"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
-    "hardhat": "^2.6.5"
+    "hardhat": "^0.0.7"
   }
 }

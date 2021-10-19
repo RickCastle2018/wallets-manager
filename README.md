@@ -1,9 +1,11 @@
 
 # wallets-manager
 
-`v0.5` currently. Everythig is module. Getting ready for OGLC-BNB exchange (v0.5.1), setting up NFT dev env.
+`v0.6b` currently. No NFTs for now. Super-exchange and q-manager being implemented.
 
 Start the service:
+
+**before doing steps listed below in production env:** you MUST run `/service/test/test.js`. Check it's output carefully, ask maintainer if you got non-obvious errors. But you should leave deployment to me or our future CI/CD pipeline!
 
 1. Install Docker, enable it in systemctl,
 2. `git pull` this repository,
@@ -18,19 +20,63 @@ if you got an error -- contact maintainer :)
 
 ## API
 
-API methods documentation. Access at `127.0.0.1:2311/& ` without auth. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
+API methods documentation. Access at `127.0.0.1:2311/... ` without auth. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
 
-Built with REST in mind. So all query examples are JSON which you have to send in POST-data to service. And there's example for each API method: *Q --  Query struct. R -- Response struct*. If there's no *Responce*, service will return just 200 HTTP code.
+Built with REST in mind. So all query examples are JSON which you have to send in POST-data to service. And there's example for each API method: *Q --  Query struct. R -- Response struct*. If there's no *Responce*, service will return just 200 HTTP code or 500 error.
 
-**Errors**: if there was an error while method execution, service will return 500 HTTP code, *and short error description*. For example: `Returned error: insufficient` or `Returned error: invalid sender` (if it was coder's error). If there was error after transaction check, game will get webhook with `error` (see Webhooks section).
+**Errors**: if there was an error while method execution, service will return 500 HTTP code, *and short error description*. For example: `Returned error: insufficient funds` or `Returned error: invalid sender` (if it was coder's error). But there was error after transaction check, service will return 200 OK, but then game will get webhook with `error` (see Webhooks section).
 
 In examples you can find unusual type *Wei*. In blockchain all money amounts should be provided in Wei. Represented by `string` in JSON. Learn more: https://www.investopedia.com/terms/w/wei.asp
 
-### game-wallet
+### transactions (!)
+
+When game makes POST request, which supposed to move any funds (oglc/bnb/nft), transaction queue comes into play. 
+
+For example, game does `POST /game-wallet/withdraw`: service will return *calculations* for transaction (fees, bnb-to-move, etc.) and if game provided `placeToQueue: true` in request, transaction will be prepared and waiting.
+
+#### GET /transactions/{transaction_id}
+
+After queuing game can access transaction by the `{transaction_id}`, which was provided by it in POST request to service earlier.
+
+**Notice:** all transactions are stored in simple in-memory key-value storage, so if you got 404 error there's nothing special.
+
+
+```js
+R:
+
+{
+	type: string, // (see Webhooks section)
+	currency: string, // oglc/bnb/nft
+	from: string, // address
+	to: string // address (!)
+	amount/id: string // wei if amount / int if nft
+}
+```
+
+
+#### DELETE /transactions/{transaction_id}
+
+Delete (cancel) transaction without executing. *Not required, but expected:* otherwise transaction will be cancelled after 5 minutes from creation.
+
+#### POST /transactions/{transaction_id}
+
+Execute transaction. Game will get Webhook after it's confirmation.
+
+*Planned to be implemented with global security patch:*
+
+```js
+Q:
+
+{
+   security_sign: ... // some kind of game sign
+}
+```
+
+### gamewallet
 
 game-wallet (`/game-wallet/{method}`) --  our 'bank'. *In future* there will be a few types (ex. `/game-wallets/oglc/ `, `/game-wallets/nft/`, ...).
 
-#### GET /game-wallet
+#### GET /gamewallet
 
 Return game's game-wallet data: blockchain address and balance.
 
@@ -46,7 +92,7 @@ R:
 }
 ```
 
-#### POST /game-wallet/withdraw
+#### POST /gamewallet/withdraw
 
 Withdraw money from game-wallet to user-wallet. There's no option to withdraw directly to an address for security.
 
@@ -61,7 +107,7 @@ Q:
 }
 ```
 
-#### POST /game-wallet/buy
+#### POST /gamewallet/buy
 
 It's simple: send money from user-wallet to game-wallet.
 
@@ -78,7 +124,7 @@ Q:
 }
 ```
 
-### user-wallets
+### userwallets
 
 user-wallet (`/user-wallets/{user-id}/{method}`) -- a wallet which every user has, user's game account.
 
@@ -100,7 +146,7 @@ R:
 }
 ```
 
-#### PUT /user-wallets/{user_id}
+#### PUT /userwallets/{user_id}
 
 Create new user-wallet with the following `{user_id}`. Returns blockchain address.
 
@@ -113,7 +159,7 @@ R:
 ```
 
 
-#### POST /user-wallets/{user_id}/withdraw
+#### POST /userwallets/{user_id}/withdraw
 
 Withdraw OGLC/BNB out of game system. No fee for now (withdrawal fees will be implemented soon).
 
@@ -128,11 +174,10 @@ Q:
 }
 ```
 
+
 ### exchange
 
-Exchange OGLC for BNB or BNB for OGLC. Not that simple.
-
-First, *game* should POST /exchange/calculate, and then POST /exchange with data received from first POST (`exchange` object).
+Exchange OGLC for BNB or BNB for OGLC. *In future:*  Market NFT for Ogle NFT.
 
 #### GET /exchange
 
@@ -151,6 +196,8 @@ R:
 
 **Not implemented yet!** Change exchange fees or bnbPrice. You can provide only one value (bnbPrice of fee). Notice: if there's no exchange config in database, service will use params from `.env` file.
 
+Mb, I'll implement wallets-manager's `/manager` to manage settings.
+
 ```js
 Q:
 
@@ -160,35 +207,9 @@ Q:
 }
 ```
 
-#### POST /exchange/calculate
-
-Get calculations for the exchange.
-
-```js
-Q:
-
-{   
-    currency: string, // from
-    amount: wei
-}
-
-R:
-
-{   
-    possible: bool,
-    error: string, // returned only if possible: false
-    feePaid: wei, // fee is always paid in BNB
-    exchange: {
-      from: string, // oglc/bnb
-      bnb: wei,
-      oglc: wei
-    }
-}
-```
-
 #### POST /exchange
 
-Exchange. In query you should send `exchange` object from `/exchnage/calculate` responce. Game will get 2 webhooks with the same `transaction_id`. In one of them will be `user` fied and user-wallet balances, in another -- won't and it will have balances of game-wallet.
+Exchange. Transaction will be placed into queue. Game will get 2 webhooks with the same `transaction_id`. In one of them will be `user` fied and user-wallet balances, in another -- won't and it will have balances of game-wallet.
 
 ```js
 Q:
@@ -205,7 +226,7 @@ Q:
 
 ### nfts
 
-**Not implemented yet!** This is a draft, and none of the methods listed below works.
+**Nothing implemented yet!** This is a draft, and none of the methods listed below works.
 
 #### GET /nfts
 
@@ -243,8 +264,8 @@ Get token's JSON.
 
 #### POST /nfts/buy
 
-It's simple: send money from user-wallet to game-wallet.
-
+Mint new NFT and send to user.
+ 
 ```js
 Q:
 
@@ -294,3 +315,7 @@ In future there will be also NFT-events here.
 ### Backups
 
 You know, without backups you can loose everything. So, see `/db/backup.sh` and `/db/restore.sh`. `backup.sh` should be set in CRON.
+
+### Logs
+
+See `service/error.log` file and `server.js` for implementation. In future we'll have monitoring system (alarms, graphana, etc.).

@@ -28,7 +28,7 @@ export function transferBNB(from, to, amount, transaction, callback) {
 			web3.eth.estimateGas(measureTx).then((estimateGas) => {
 				const txObject = {
 					from: from.address,
-					nonce: web3.utils.toHex(txCount),
+					nonce: web3.utils.toHex(txCount+transaction.id),
 					to: to.address,
 					value: web3.utils.toHex(amount),
 					chain: web3.utils.toHex(process.env.BLOCKCHAIN_ID),
