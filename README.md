@@ -1,11 +1,11 @@
 
 # wallets-manager
 
-`v0.6b` currently. No NFTs for now. Super-exchange and q-manager being implemented.
+`v0.6b` currently. No NFTs for now. Super-exchange and transaction-manager being implemented.
 
 Start the service:
 
-**before doing steps listed below in production env:** you MUST run `/service/test/test.js`. Check it's output carefully, ask maintainer if you got non-obvious errors. But you should leave deployment to me or our future CI/CD pipeline!
+Before doing steps listed below you must run `tests/test.js`, but if it's possible leave deployment to me or our future CI/CD pipeline, please.
 
 1. Install Docker, enable it in systemctl,
 2. `git pull` this repository,
@@ -56,27 +56,17 @@ R:
 
 #### DELETE /transactions/{transaction_id}
 
-Delete (cancel) transaction without executing. *Not required, but expected:* otherwise transaction will be cancelled after 5 minutes from creation.
+Delete (cancel) transaction without executing. It's *not required, but expected:* otherwise transaction will be cancelled after 5 minutes from creation.
 
 #### POST /transactions/{transaction_id}
 
 Execute transaction. Game will get Webhook after it's confirmation.
 
-*Planned to be implemented with global security patch:*
-
-```js
-Q:
-
-{
-   security_sign: ... // some kind of game sign
-}
-```
-
-### gamewallet
+### game-wallet
 
 game-wallet (`/game-wallet/{method}`) --  our 'bank'. *In future* there will be a few types (ex. `/game-wallets/oglc/ `, `/game-wallets/nft/`, ...).
 
-#### GET /gamewallet
+#### GET /game-wallet
 
 Return game's game-wallet data: blockchain address and balance.
 
@@ -92,7 +82,7 @@ R:
 }
 ```
 
-#### POST /gamewallet/withdraw
+#### POST /game-wallet/withdraw
 
 Withdraw money from game-wallet to user-wallet. There's no option to withdraw directly to an address for security.
 
@@ -107,7 +97,7 @@ Q:
 }
 ```
 
-#### POST /gamewallet/buy
+#### POST /game-wallet/buy
 
 It's simple: send money from user-wallet to game-wallet.
 
@@ -124,13 +114,15 @@ Q:
 }
 ```
 
-### userwallets
+### user-wallets
 
 user-wallet (`/user-wallets/{user-id}/{method}`) -- a wallet which every user has, user's game account.
 
 `{user_id}` -- should be the same as user's id in game's database.
 
-#### GET /user-wallets/{user_id}
+#### GET /user-wallets/{user_id OR address}
+
+If
 
 Get user data: balance and blockchain address.
 
@@ -146,7 +138,7 @@ R:
 }
 ```
 
-#### PUT /userwallets/{user_id}
+#### PUT /user-wallets/{user_id}
 
 Create new user-wallet with the following `{user_id}`. Returns blockchain address.
 
@@ -159,7 +151,7 @@ R:
 ```
 
 
-#### POST /userwallets/{user_id}/withdraw
+#### POST /user-wallets/{user_id}/withdraw
 
 Withdraw OGLC/BNB out of game system. No fee for now (withdrawal fees will be implemented soon).
 
@@ -173,7 +165,6 @@ Q:
     currency: string // bnb or oglc
 }
 ```
-
 
 ### exchange
 
@@ -287,30 +278,14 @@ Webhook JSON:
 ```js
 {   
     transaction_id: int,
-    type: string, // see types list below
+    type: string, // internal/external
     successful: bool,
-    error: string, // returned only if successful: false, none of objects below will be returned 
+    error: string, // returned only when unsuccessful
     gasPaid: string, // gas
-    user: { // data about requested wallet after transaction (if requested /user-wallets/&  there will be data about the following user-wallet, if /game-wallet - data about game-wallet)
-        id: int, // will be provided only with transactions with user-wallets
-        balance: {
-            bnb: wei,
-            oglc: wei
-        },
-        address: string
-    }
+    from: string // address
+    to: string // address
 }
 ```
-
-Types of Webhook events:
-
-- 'refill' -- user-wallet has been refilled from 'outside' (no transaction_id will be sent)
-- 'withdraw' -- transfer from user-wallet to the external address
-- 'purchase' -- money from *user-wallet* to *game-wallet* transaction
-- 'exit' -- money from *game-wallet* to *user-wallet* transaction. This type is almost similar to "refill", but it has transaction_id, but "refill" don't (because it can't be requested by the game)
-<!-- - 'reclaim' -- user sent to user-wallet his NFT bought from market and service has exchanged it to Ogle -->
-
-In future there will be also NFT-events here.
 
 ### Backups
 

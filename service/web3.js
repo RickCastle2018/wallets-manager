@@ -1,17 +1,7 @@
 import Web3 from 'web3';
-import ethertx from '@ethereumjs/tx';
-import Common from '@ethereumjs/common';
-import axios from 'axios';
 
 const web3 = new Web3(process.env.BLOCKCHAIN_NODE);
 export default web3;
-
-const common = Common.default.forCustomChain('mainnet', {
-	name: 'bnb',
-	networkId: process.env.BLOCKCHAIN_ID,
-	chainId: process.env.BLOCKCHAIN_ID,
-	chain: process.env.BLOCKCHAIN_ID,
-}, 'petersburg');
 
 export function transferBNB(from, to, amount, transaction, callback) {
 	web3.eth.getTransactionCount(from.address, (err, txCount) => {

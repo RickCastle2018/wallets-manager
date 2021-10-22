@@ -2,9 +2,10 @@ import {createLogger, format, transports} from 'winston';
 import mongoose from 'mongoose';
 import express from 'express';
 
-import * as uw from './api/userwallets.js';
 import * as gw from './api/gamewallet.js';
+import * as uw from './api/userwallets.js';
 import * as exchange from './api/exchange.js';
+import * as tx from './api/transactions.js';
 
 const logger = createLogger({
 	transports: [
@@ -39,6 +40,12 @@ conn.once('open', () => {
 	}));
 	app.use(express.json());
 
+	// trasactions
+	app.use('/transactions*', tx.middleware);
+	app.get('/trasactions/:id', tx.get);
+	app.delete('/transactions/:id', tx.cancel);
+	app.post('/transactions/:id', tx.proceed);
+
 	// game-wallet
 	app.use('/game-wallet*', gw.middleware);
 	app.get('/game-wallet', gw.get);
@@ -57,6 +64,7 @@ conn.once('open', () => {
 	app.post('/user-wallets/:idInGame/exchange', exchange.make);
 
 	// nfts
+	app.get();
 
 	app.listen(process.env.PORT, () => {
 		console.log(`wallets-manager running at http://127.0.0.1:${process.env.PORT}`);
