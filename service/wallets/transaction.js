@@ -19,15 +19,14 @@ export default class Tx {
   }, 'petersburg');
 
 	constructor(txId, privateKey, txObject) {
+		this.id = txId;
+
 		const tx = ethertx.Transaction.fromTxData(txObject, {
 			common,
 		});
 		const pK = Buffer.from(privateKey.slice(2), 'hex');
 		tx.sign(pK);
 		const serializedTrans = tx.serialize();
-
-		this.id = txId;
-    thid
 		this.raw = `0x${serializedTrans.toString('hex')}`;
 
 		txStorage.set(txId, this);
@@ -47,8 +46,8 @@ export default class Tx {
 					type: 'internal',
 					successful: receipt.status,
 					gasPaid: receipt.gasUsed,
-					from: tx.from,
-					to: tx.to,
+					from: '', // tx.from
+					to: '', // tx.to
 				};
 
 				axios({
