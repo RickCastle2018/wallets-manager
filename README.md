@@ -1,7 +1,7 @@
 
 # wallets-manager
 
-`v0.6b` currently. No NFTs for now. Super-exchange and transaction-manager being implemented.
+`v0.6b` currently. Docs're NOT READY! Code too.
 
 Start the service:
 
@@ -45,7 +45,6 @@ After queuing game can access transaction by the `{transaction_id}`, which was p
 R:
 
 {
-	type: string, // (see Webhooks section)
 	currency: string, // oglc/bnb/nft
 	from: string, // address
 	to: string // address (!)
