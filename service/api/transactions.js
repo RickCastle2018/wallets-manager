@@ -10,14 +10,7 @@ export function middleware (req, res, next) {
 }
 
 export function get (req, res) {
-  const data = req.tx.data
-  res.send({
-    from: data.from,
-    to: data.to,
-    currency: data.currency,
-    amount: data.amount,
-    fee: data.fee
-  })
+  res.send(req.tx.data)
 }
 
 export function cancel (req, res) {

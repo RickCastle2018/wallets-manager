@@ -32,11 +32,9 @@ export default class Tx {
     return this
   }
 
-  enqueue (data) {
-    txStorage.set(this.id, {
-      tx: this,
-      data: data
-    })
+  enqueue (extra) {
+    this.data = extra
+    txStorage.set(this.id, this)
   }
 
   cancel () {
@@ -47,14 +45,13 @@ export default class Tx {
     web3.eth.sendSignedTransaction(this.raw, (hash) => {
       requestedTransactions.set(hash, this.id)
     }).once('receipt', (receipt) => {
-      // web3.eth.getTransaction(receipt.transactionHash).then((tx) => {
       const webhook = {
         transaction_id: this.id,
         type: 'internal',
         successful: receipt.status,
         gasPaid: receipt.gasUsed,
-        from: '', // tx.from
-        to: '' // tx.to
+        from: this.data.from ? this.data.from : '',
+        to: this.data.to ? this.data.to : ''
       }
 
       axios({
@@ -62,7 +59,6 @@ export default class Tx {
         url: process.env.WEBHOOKS_LISTENER,
         data: webhook
       })
-      // });
     }).on('error', (error) => {
       const webhook = {
         transaction_id: this.id,

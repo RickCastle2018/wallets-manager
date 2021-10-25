@@ -2,79 +2,71 @@ import BigNumber from 'bignumber.js'
 import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import { transfer as transferCoin } from '../coin/coin.js'
-import { load as loadUserWallet } from '../wallets/userwallet.js'
 import { load as loadGameWallet } from '../wallets/gameWallet.js'
 
-export const bnbRate = process.env.BNB_PRICE
+const bnbRate = parseInt(process.env.BNB_PRICE)
+const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)
 
-export default function calculate (txIDs, amountWei, currencyFrom, callback) {
-  const bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
+export default function exchange (txIds, user, amountWei, currencyFrom, callback) {
+  let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
+  bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
 
-  loadGameWallet((gW) => {
-    if (currencyFrom == 'bnb') {
-      const bnb = bigCoins.divn(parseInt(bnbRate)) // .ne
-    } else {
-      const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE))
-    }
+  switch (currencyFrom) {
+    case 'bnb': {
+      const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate))
+      const bnbToTake = web3.utils.toWei(bigAmount)
 
-    callback()
-
-    transferBNB(txIDs[0], this, gW, bnb, {
-      id: gameTransactionId,
-      user: this,
-      type: 'exchange',
-      dry: true
-    }, (err) => {
-      if (!err) {
-        transferCoin(gW, this, coins, {
-          id: gameTransactionId,
-          user: this,
-          type: 'exchange',
-          dry: true
-        }, (err) => {
-          if (!err) {
-            callback(undefined, {
-              amount: bnb.toString(),
-              fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
-            })
-          } else {
+      loadGameWallet((gW) => {
+        transferCoin(
+          txIds[0],
+          gW,
+          user.address,
+          coinsToSend,
+          (err) => {
             callback(err)
           }
-        })
-      } else {
-        callback(err)
-      }
-    })
-  })
+        )
 
-  loadGameWallet((gW) => {
-    const sender = {}
-    if (transaction.currency === 'bnb') {
-      sender.bnb = this
-      sender.oglc = gW
-    } else {
-      sender.bnb = gW
-      sender.oglc = this
+        transferBNB(
+          txIds[1],
+          user,
+          gW.address,
+          bnbToTake,
+          (err) => {
+            callback(err)
+          }
+        )
+      })
+      break
     }
+    case 'oglc': {
+      const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate))
+      const coinToTake = web3.utils.toWei(bigAmount)
 
-    transferBNB(sender.bnb, sender.oglc, transaction.bnb, {
-      id: transaction.id,
-      user: this,
-      type: 'exchange',
-      dry: false
-    }, (err) => {
-      callback(err)
-    })
+      loadGameWallet((gW) => {
+        transferCoin(
+          txIds[0],
+          user,
+          gW.address,
+          coinToTake,
+          (err) => {
+            callback(err)
+          }
+        )
 
-    transferCoin(sender.oglc, sender.bnb, transaction.oglc, {
-      id: transaction.id,
-      user: this,
-      type: 'exchange',
-      dry: false
-    }, (err) => {
-      callback(err)
-    })
+        transferBNB(
+          txIds[1],
+          gW,
+          user.address,
+          bnbToSend,
+          (err) => {
+            callback(err)
+          }
+        )
+      })
+      break
+    }
+  }
 
-    callback()
-  })
+  callback()
 }

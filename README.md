@@ -5,12 +5,12 @@
 
 Start the service:
 
-*Before doing steps listed below you must run `tests/test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
+*Before doing steps listed below you must run `test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
 
 1. Install Docker, enable it in systemctl,
 2. `git pull` this repository,
 3. do `cd service` and `npm install`,
-4. create .env file peeping in example.env,
+4. create .env file (see example.env),
 5. go back (`cd ..`) and start wallets-manager finally:
 
 - startup with blockhain's `mainnet`: `docker-compose up -d`,
@@ -45,10 +45,11 @@ After queuing game can access transaction by the `{transaction_id}`, which was p
 R:
 
 {
-	currency: string, // oglc/bnb/nft
 	from: string, // address
-	to: string // address (!)
-	amount/id: string // wei if amount / int if nft
+	to: string, // address	
+	currency: string, // oglc/bnb/nft
+	amount: string, // wei if amount / int if nft
+	fee: string // gas
 }
 ```
 
@@ -119,9 +120,9 @@ user-wallet (`/user-wallets/{user-id}/{method}`) -- a wallet which every user ha
 
 `{user_id}` -- should be the same as user's id in game's database.
 
-#### GET /user-wallets/{user_id OR address}
+**Notice:** `address` can be used intead of `user_id` in any /user-wallets method!
 
-If
+#### GET /user-wallets/{user_id OR address}
 
 Get user data: balance and blockchain address.
 
@@ -165,11 +166,7 @@ Q:
 }
 ```
 
-### exchange
-
-Exchange OGLC for BNB or BNB for OGLC. *In future:*  Market NFT for Ogle NFT.
-
-#### GET /exchange
+#### GET /user-wallets/{user_id}/exchange
 
 Get exchange info.
 
@@ -182,22 +179,7 @@ R:
 }
 ```
 
-#### POST /exchange/update
-
-**Not implemented yet!** Change exchange fees or bnbPrice. You can provide only one value (bnbPrice of fee). Notice: if there's no exchange config in database, service will use params from `.env` file.
-
-Mb, I'll implement wallets-manager's `/manager` to manage settings.
-
-```js
-Q:
-
-{   
-    bnbPrice: int,
-    exchangeFee: float
-}
-```
-
-#### POST /exchange
+#### POST /user-wallets/{user_id}/exchange
 
 Exchange. Transaction will be placed into queue. Game will get 2 webhooks with the same `transaction_id`. In one of them will be `user` fied and user-wallet balances, in another -- won't and it will have balances of game-wallet.
 
@@ -205,12 +187,9 @@ Exchange. Transaction will be placed into queue. Game will get 2 webhooks with t
 Q:
 
 {   
-    transaction_id: int,
-    exchange: {
-      from: string, // oglc/bnb
-      bnb: wei,
-      oglc: wei
-    }
+    transaction_id: [int, int],
+    currency: string, // from
+    amount: wei
 }
 ```
 

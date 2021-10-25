@@ -15,7 +15,7 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
         gasPrice: web3.utils.toHex(gasPrice)
       }
 
-      web3.eth.estimateGas(measureTx).then((estimateGas) => {
+      web3.eth.estimateGas(measureTx).then((estimatedGas) => {
         const txObject = {
           from: fromUser.address,
           nonce: web3.utils.toHex(txCount + txId),
@@ -23,10 +23,19 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
           value: web3.utils.toHex(amount),
           chain: web3.utils.toHex(process.env.BLOCKCHAIN_ID),
           gasPrice: web3.utils.toHex(gasPrice),
-          gasLimit: web3.utils.toHex(Math.round(estimateGas + (estimateGas * 0.2)))
+          gasLimit: web3.utils.toHex(100000),
+          gas: estimatedGas
         }
 
         const tx = new Tx(txId, fromUser.privateKey, txObject)
+        tx.enqueue({
+          from: fromUser.address,
+          to: toAddress,
+          currency: 'oglc',
+          amount: amount,
+          feePaid: estimatedGas
+        })
+
         callback(null, tx)
       },
       (err) => {
