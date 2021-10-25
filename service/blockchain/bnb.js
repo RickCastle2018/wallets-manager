@@ -27,7 +27,7 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
         }
 
         const tx = new Tx(txId, fromUser.privateKey, txObject)
-        callback(tx)
+        callback(null, tx)
       },
       (err) => {
         callback(err)

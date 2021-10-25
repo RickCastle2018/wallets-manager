@@ -5,7 +5,7 @@
 
 Start the service:
 
-Before doing steps listed below you must run `tests/test.js`, but if it's possible leave deployment to me or our future CI/CD pipeline, please.
+*Before doing steps listed below you must run `tests/test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
 
 1. Install Docker, enable it in systemctl,
 2. `git pull` this repository,
@@ -281,7 +281,7 @@ Webhook JSON:
     successful: bool,
     error: string, // returned only when unsuccessful
     gasPaid: string, // gas
-    from: string // address
+    from: string, // address
     to: string // address
 }
 ```

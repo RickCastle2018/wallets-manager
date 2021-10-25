@@ -24,13 +24,14 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
         gasLimit: web3.utils.toHex(100000)
       }
 
-      coin.methods.transfer(toAddress, new web3.utils.BN(amount)).estimateGas(txObject, (err) => {
+      coin.methods.transfer(toAddress, new web3.utils.BN(amount)).estimateGas(txObject,
+        (err) => {
         // txObject.gasLimit = web3.utils.toHex(estimateGas);
-        if (err) return callback(err)
+          if (err) return callback(err)
 
-        const tx = new Tx(txId, fromUser.privateKey, txObject)
-        callback(tx)
-      })
+          const tx = new Tx(txId, fromUser.privateKey, txObject)
+          callback(null, tx)
+        })
     })
   })
 }

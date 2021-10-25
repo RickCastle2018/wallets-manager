@@ -18,65 +18,43 @@ gameWalletSchema.methods.getBalance = function (callback) {
     })
   })
 }
-gameWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipientGameId, callback) {
+gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientGameId, callback) {
   loadUserWallet(recipientGameId, (uW) => {
     if (uW) {
-      transferCoin(this, uW, amount, {
-        id: gameTransactionId,
-        user: this,
-        type: 'exit',
-        dry: false
-      }, (err) => {
-        callback(err)
-      })
+      switch (currency) {
+        case 'bnb':
+          transferBNB(txId, this, uW.address, amount,
+            (err) => {
+              callback(err)
+            })
+          break
+        case 'oglc':
+          transferCoin(txId, this, uW.address, amount,
+            (err) => {
+              callback(err)
+            })
+      }
     } else {
       callback(new Error('recipient not provided'))
     }
   })
 }
-gameWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipientGameId, callback) {
-  loadUserWallet(recipientGameId, (uW) => {
-    if (uW) {
-      transferBNB(this, uW, amount, {
-        id: gameTransactionId,
-        user: this,
-        type: 'exit',
-        dry: false
-      }, (err) => {
-        callback(err)
-      })
-    } else {
-      callback(new Error('recipient not provided'))
-    }
-  })
-}
-gameWalletSchema.methods.buyWithCoin = function (gameTransactionId, amount, depositorGameId, callback) {
+gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId, callback) {
   loadUserWallet(depositorGameId, (uW) => {
     if (uW) {
-      transferCoin(uW, this, amount, {
-        id: gameTransactionId,
-        user: this,
-        type: 'purchase',
-        dry: false
-      }, (err) => {
-        callback(err)
-      })
-    } else {
-      callback(new Error('no recipient provided'))
-    }
-  })
-}
-gameWalletSchema.methods.buyWithBNB = function (gameTransactionId, amount, depositorGameId, callback) {
-  loadUserWallet(depositorGameId, (uW) => {
-    if (uW) {
-      transferBNB(uW, this, amount, {
-        id: gameTransactionId,
-        user: this,
-        type: 'purchase',
-        dry: false
-      }, (err) => {
-        callback(err)
-      })
+      switch (currency) {
+        case 'bnb':
+          transferBNB(txId, uW, this.address, amount,
+            (err) => {
+              callback(err)
+            })
+          break
+        case 'oglc':
+          transferCoin(txId, uW, this.address, amount,
+            (err) => {
+              callback(err)
+            })
+      }
     } else {
       callback(new Error('no recipient provided'))
     }

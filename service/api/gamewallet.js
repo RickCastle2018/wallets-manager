@@ -12,7 +12,8 @@ export function middleware (req, res, next) {
 }
 
 export function get (req, res) {
-  req.gameWallet.getBalance((b) => {
+  req.gameWallet.getBalance((err, b) => {
+    if (err) res.status(500).send(err.message)
     res.send({
       address: req.gameWallet.address,
       balance: b
@@ -21,39 +22,21 @@ export function get (req, res) {
 }
 
 export function withdraw (req, res) {
-  switch (req.body.currency) {
-    case 'bnb':
-      req.gameWallet.withdrawBNB(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
-        if (err) return res.status(500).send(err.message)
-        return res.status(200).send()
-      })
-      break
-    case 'oglc':
-      req.gameWallet.withdrawCoin(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
-        if (err) return res.status(500).send(err.message)
-        return res.status(200).send()
-      })
-      break
-    default:
-      res.status(500).send('no currency provided')
-  }
+  if (!req.body.currency) res.status(500).send('no currency provided')
+
+  req.gameWallet.withdraw(req.body.transaction_id, req.body.currency, req.body.amount, req.body.to,
+    (err) => {
+      if (err) return res.status(500).send(err.message)
+      return res.status(200).send()
+    })
 }
 
 export function buy (req, res) {
-  switch (req.body.currency) {
-    case 'bnb':
-      req.gameWallet.buyWithBNB(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
-        if (err) return res.status(500).send(err.message)
-        return res.status(200).send()
-      })
-      break
-    case 'oglc':
-      req.gameWallet.buyWithCoin(req.body.transaction_id, req.body.amount, req.body.from, (err) => {
-        if (err) return res.status(500).send(err.message)
-        return res.status(200).send()
-      })
-      break
-    default:
-      res.status(500).send('no currency provided')
-  }
+  if (!req.body.currency) res.status(500).send('no currency provided')
+
+  req.gameWallet.buy(req.body.transaction_id, req.body.currency, req.body.amount, req.body.from,
+    (err) => {
+      if (err) return res.status(500).send(err.message)
+      return res.status(200).send()
+    })
 }

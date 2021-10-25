@@ -1,6 +1,7 @@
 import {
   create as createUserWallet,
-  load as loadUserWallet
+  load as loadUserWallet,
+  loadByAddr as loadUserWalletByAddress
 } from '../wallets/userwallet.js'
 
 export function create (req, res) {
@@ -13,17 +14,28 @@ export function create (req, res) {
 }
 
 export function middleware (req, res, next) {
-  loadUserWallet(req.params.idInGame, (uW) => {
-    if (uW) {
-      req.userWallet = uW
-      return next()
-    }
-    return res.status(404).send('user-wallet not found')
-  })
+  if (!isNaN(req.params.idInGame)) {
+    loadUserWalletByAddress(req.params.idInGame, (uW) => {
+      if (uW) {
+        req.userWallet = uW
+        return next()
+      }
+      return res.status(404).send('user-wallet not found')
+    })
+  } else {
+    loadUserWallet(req.params.idInGame, (uW) => {
+      if (uW) {
+        req.userWallet = uW
+        return next()
+      }
+      return res.status(404).send('user-wallet not found')
+    })
+  }
 }
 
 export function get (req, res) {
-  req.userWallet.getBalance((b) => {
+  req.userWallet.getBalance((err, b) => {
+    if (err) res.status(500).send(err.message)
     res.send({
       address: req.userWallet.address,
       balance: b

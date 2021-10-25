@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
-import { load as loadGameWallet } from './gamewallet.js'
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -20,106 +19,21 @@ userWalletSchema.methods.getBalance = function (callback) {
     })
   })
 }
-userWalletSchema.methods.withdrawCoin = function (gameTransactionId, amount, recipient, callback) {
-  const user = {
-    address: recipient
+userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientAddress, callback) {
+  switch (currency) {
+    case 'bnb':
+      transferBNB(txId, this, recipientAddress, amount,
+        (err) => {
+          callback(err)
+        })
+      break
+    case 'oglc':
+      transferCoin(txId, this, recipientAddress, amount,
+        (err) => {
+          callback(err)
+        })
+      break
   }
-  transferCoin(this, user, amount, {
-    id: gameTransactionId,
-    user: this,
-    type: 'withdraw',
-    dry: false
-  }, (err) => {
-    callback(err)
-  })
-}
-userWalletSchema.methods.withdrawBNB = function (gameTransactionId, amount, recipient, callback) {
-  const user = {
-    address: recipient
-  }
-  transferBNB(this, user, amount, {
-    id: gameTransactionId,
-    user: this,
-    type: 'withdraw',
-    dry: false
-  }, (err) => {
-    callback(err)
-  })
-}
-userWalletSchema.methods.calculateExchange = function (amount, currencyFrom, callback) {
-  callback(new Error('not implemented'))
-
-// loadGameWallet((gW) => {
-//
-//   if (currencyFrom == 'bnb') {
-//     const bnb = bigCoins.divn(parseInt(process.env.BNB_PRICE)); //.ne
-//   } else {
-//     const coins = bigBNB.mul(process.env.BNB_PRICE).neg(bigBNB.mul(process.env.EXCHANGE_FEE));
-//   }
-//
-//   callback();
-//
-//   transferBNB(this, gW, bnb, {
-//     "id": gameTransactionId,
-//     "user": this,
-//     "type": "exchange",
-//     "dry": true
-//   }, (err) => {
-//     if (!err) {
-//       transferCoin(gW, this, coins, {
-//         id: gameTransactionId,
-//         user: this,
-//         type: 'exchange',
-//         dry: true
-//       }, (err) => {
-//         if (!err) {
-//           callback(undefined, {
-//             amount: bnb.toString(),
-//             fee: bigCoins.divn(100).muln(parseInt(process.env.EXCHANGE_FEE)).toString()
-//           });
-//         } else {
-//           callback(err);
-//         }
-//       });
-//     } else {
-//       callback(err);
-//     }
-//   });
-//
-// });
-}
-
-userWalletSchema.methods.exchange = function (transaction, callback) {
-  loadGameWallet((gW) => {
-    const sender = {}
-    if (transaction.currency === 'bnb') {
-      sender.bnb = this
-      sender.oglc = gW
-    } else {
-      sender.bnb = gW
-      sender.oglc = this
-    }
-
-    transferBNB(sender.bnb, sender.oglc, transaction.bnb, {
-      id: transaction.id,
-      user: this,
-      type: 'exchange',
-      dry: false
-    }, (err) => {
-      callback(err)
-    })
-
-    transferCoin(sender.oglc, sender.bnb, transaction.oglc, {
-      id: transaction.id,
-      user: this,
-      type: 'exchange',
-      dry: false
-    }, (err) => {
-      callback(err)
-    })
-
-    callback()
-  })
 }
 const UserWallet = mongoose.model('UserWallet', userWalletSchema)
 export default UserWallet
@@ -151,23 +65,16 @@ export function load (userIdInGame, callback) {
   UserWallet.findOne({
     idInGame: userIdInGame
   }, (err, uW) => {
-    if (err) return callback(new Error())
+    if (err) return callback()
     return callback(uW)
   })
 }
 
-export function loadId (address, callback) {
+export function loadByAddr (addr, callback) {
   UserWallet.findOne({
-    address
+    address: addr
   }, (err, uW) => {
-    let found
-    if (err) {
-      found = false
-      uW = {
-        userIdInGame: ''
-      }
-    }
-
-    callback(found, uW.userIdInGame)
+    if (err) return callback()
+    return callback(uW)
   })
 }
