@@ -181,7 +181,7 @@ R:
 
 #### POST /user-wallets/{user_id}/exchange
 
-Exchange. Transaction will be placed into queue. Game will get 2 webhooks with the same `transaction_id`. In one of them will be `user` fied and user-wallet balances, in another -- won't and it will have balances of game-wallet.
+Exchange. Transactions will be placed into queue. Game will get 2 webhooks.
 
 ```js
 Q:

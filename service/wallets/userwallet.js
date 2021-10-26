@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
+import exchange from '../coin/exchange.js' // also, used for OGLC commisions
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -23,7 +24,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
   switch (currency) {
     case 'bnb':
       transferBNB(txId, this, recipientAddress, amount,
-        (err) => {
+        (err, data) => {
           callback(err)
         })
       break
@@ -34,6 +35,15 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
         })
       break
   }
+}
+userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, callback) {
+  exchange(txIds, this, amount, currencyFrom,
+    (err) => {
+      callback(err)
+    })
+}
+userWalletSchema.methods.getTestCoin = function (amount) {
+  // TODO
 }
 const UserWallet = mongoose.model('UserWallet', userWalletSchema)
 export default UserWallet

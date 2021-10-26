@@ -1,7 +1,7 @@
 import axios from 'axios'
 import NodeCache from 'node-cache'
 import coin from '../coin/coin.js'
-import { loadId as loadUserWalletId } from './userwallet.js'
+import { loadByAddr as loadUserWalletId } from './userwallet.js'
 // coin web3 airntfts
 
 // TODO: Store in Redis with backups
