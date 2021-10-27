@@ -13,8 +13,7 @@ export const txStorage = new NodeCache({
 const common = Common.default.forCustomChain('mainnet', {
   name: 'bnb',
   networkId: process.env.BLOCKCHAIN_ID,
-  chainId: process.env.BLOCKCHAIN_ID,
-  chain: process.env.BLOCKCHAIN_ID
+  chainId: process.env.BLOCKCHAIN_ID
 }, 'petersburg')
 
 export default class Tx {
@@ -25,9 +24,9 @@ export default class Tx {
       common
     })
     const pK = Buffer.from(privateKey.slice(2), 'hex')
-    tx.sign(pK)
-    const serializedTrans = tx.serialize()
-    this.raw = `0x${serializedTrans.toString('hex')}`
+    const signedTx = tx.sign(pK)
+    const serializedTrans = signedTx.serialize()
+    this.raw = '0x' + serializedTrans.toString('hex')
 
     return this
   }

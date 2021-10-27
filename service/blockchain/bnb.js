@@ -18,7 +18,7 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
       web3.eth.estimateGas(measureTx).then((estimatedGas) => {
         const txObject = {
           from: fromUser.address,
-          nonce: web3.utils.toHex(txCount + txId),
+          nonce: web3.utils.toHex(txCount),
           to: toAddress,
           value: web3.utils.toHex(amount),
           chain: web3.utils.toHex(process.env.BLOCKCHAIN_ID),

@@ -33,10 +33,6 @@ app.listen(80, () => {
 
   test([
     {
-      method: 'get',
-      url: 'http://127.0.0.1:2311/user-wallets/1'
-    },
-    {
       method: 'put',
       url: 'http://127.0.0.1:2311/user-wallets/1'
     },
@@ -53,14 +49,28 @@ app.listen(80, () => {
       url: 'http://127.0.0.1:2311/game-wallet/withdraw',
       data: {
         transaction_id: 1,
-        amount: '900000000',
+        amount: '849995900000000',
         to: 1, // idInGame
         currency: 'bnb' // oglc or bnb
       }
     },
     {
-      method: 'get',
+      method: 'post',
+      url: 'http://127.0.0.1:2311/game-wallet/buy',
+      data: {
+        transaction_id: 2,
+        amount: '84999590000',
+        from: 1, // idInGame
+        currency: 'oglc' // oglc or bnb
+      }
+    },
+    {
+      method: 'post',
       url: 'http://127.0.0.1:2311/transactions/1'
+    },
+    {
+      method: 'post',
+      url: 'http://127.0.0.1:2311/transactions/2'
     }
   ])
 })

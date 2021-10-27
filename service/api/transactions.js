@@ -14,11 +14,12 @@ export function get (req, res) {
 }
 
 export function cancel (req, res) {
-  txStorage.del(req.params.txId)
+  req.tx.cancel()
   res.send(req.tx)
 }
 
 export function proceed (req, res) {
   req.tx.execute()
+  req.tx.cancel()
   res.status(200).send()
 }
