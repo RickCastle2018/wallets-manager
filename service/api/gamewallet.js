@@ -25,9 +25,9 @@ export function withdraw (req, res) {
   if (!req.body.currency) res.status(500).send('no currency provided')
 
   req.gameWallet.withdraw(req.body.transaction_id, req.body.currency, req.body.amount, req.body.to,
-    (err) => {
+    (err, data) => {
       if (err) return res.status(500).send(err.message)
-      return res.status(200).send()
+      return res.status(200).send(data)
     })
 }
 
@@ -35,8 +35,8 @@ export function buy (req, res) {
   if (!req.body.currency) res.status(500).send('no currency provided')
 
   req.gameWallet.buy(req.body.transaction_id, req.body.currency, req.body.amount, req.body.from,
-    (err) => {
+    (err, data) => {
       if (err) return res.status(500).send(err.message)
-      return res.status(200).send()
+      return res.status(200).send(data)
     })
 }

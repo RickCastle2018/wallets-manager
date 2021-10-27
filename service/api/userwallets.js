@@ -15,16 +15,16 @@ export function create (req, res) {
 
 export function middleware (req, res, next) {
   if (!isNaN(req.params.idInGame)) {
-    loadUserWalletByAddress(req.params.idInGame, (uW) => {
-      if (uW) {
+    loadUserWalletByAddress(req.params.idInGame, (err, uW) => {
+      if (!err) {
         req.userWallet = uW
         return next()
       }
       return res.status(404).send('user-wallet not found')
     })
   } else {
-    loadUserWallet(req.params.idInGame, (uW) => {
-      if (uW) {
+    loadUserWallet(req.params.idInGame, (err, uW) => {
+      if (!err) {
         req.userWallet = uW
         return next()
       }
@@ -46,9 +46,9 @@ export function get (req, res) {
 export function withdraw (req, res) {
   if (!req.body.currency) res.status(500).send('no currency provided')
 
-  req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err) => {
+  req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err, data) => {
     if (err) return res.status(500).send(err.message)
-    return res.status(200).send()
+    return res.status(200).send(data)
   })
 }
 
@@ -62,8 +62,8 @@ export function getExchange (req, res) {
 export function exchange (req, res) {
   if (!req.body.currency) res.status(500).send('no currency provided')
 
-  req.userWallet.exchange(req.body.transaction_id, req.body.amount, false, (err, data) => {
+  req.userWallet.exchange(req.body.transaction_id, req.body.currency, req.body.amount, (err) => {
     if (err) return res.status(500).send(err.message)
-    return res.send(data)
+    return res.status(200).send()
   })
 }

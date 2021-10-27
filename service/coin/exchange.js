@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js'
 import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import { transfer as transferCoin } from '../coin/coin.js'
-import { load as loadGameWallet } from '../wallets/gameWallet.js'
+import { load as loadGameWallet } from '../wallets/gamewallet.js'
 
 const bnbRate = parseInt(process.env.BNB_PRICE)
 const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)

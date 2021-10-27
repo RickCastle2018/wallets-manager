@@ -24,14 +24,24 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
   switch (currency) {
     case 'bnb':
       transferBNB(txId, this, recipientAddress, amount,
-        (err, data) => {
-          callback(err)
+        (err, tx) => {
+          if (err) callback(err)
+          exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+            if (err) return callback(err)
+            tx.execute()
+            callback(null, tx)
+          })
         })
       break
     case 'oglc':
       transferCoin(txId, this, recipientAddress, amount,
-        (err) => {
-          callback(err)
+        (err, tx) => {
+          if (err) callback(err)
+          exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+            if (err) return callback(err)
+            tx.execute()
+            callback(null, tx)
+          })
         })
       break
   }
@@ -75,8 +85,7 @@ export function load (userIdInGame, callback) {
   UserWallet.findOne({
     idInGame: userIdInGame
   }, (err, uW) => {
-    if (err) return callback()
-    return callback(uW)
+    callback(err, uW)
   })
 }
 
@@ -84,7 +93,6 @@ export function loadByAddr (addr, callback) {
   UserWallet.findOne({
     address: addr
   }, (err, uW) => {
-    if (err) return callback()
-    return callback(uW)
+    callback(err, uW)
   })
 }

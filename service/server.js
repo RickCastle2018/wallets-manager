@@ -1,4 +1,4 @@
-import { createLogger, transports } from 'winston'
+import winston from 'winston'
 import mongoose from 'mongoose'
 import express from 'express'
 
@@ -8,6 +8,7 @@ import * as gw from './api/gamewallet.js'
 import * as uw from './api/userwallets.js'
 import * as tx from './api/transactions.js'
 
+const { createLogger, transports } = winston
 const logger = createLogger({
   transports: [
     new transports.Console(),
@@ -24,7 +25,7 @@ const logger = createLogger({
   //   format.printf(info => `${info.level}: ${info.label}: ${[info.timestamp]}: ${info.message}`)
   // )
 })
-logger.exceptions.handle(
+logger.exceptions.handle(new transports.Console(),
   new transports.File({ filename: 'exceptions.log' }))
 
 // Start mongoose connection
@@ -70,9 +71,9 @@ conn.once('open', () => {
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
   // testnet
-  if (process.env.NODE_ENV === 'development') {
-    app.post('/user-wallets/:idInGame/getTestCoin', uw.getTestCoin)
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  //   app.post('/user-wallets/:idInGame/getTestCoin', uw.getTestCoin)
+  // }
 
   // TODO: nfts
   // app.get('/nfts/:id', nft.get)

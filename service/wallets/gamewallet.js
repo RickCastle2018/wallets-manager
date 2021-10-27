@@ -3,6 +3,7 @@ import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadUserWallet } from './userwallet.js'
+import exchange from '../coin/exchange.js' // used for OGLC commisions
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
@@ -24,14 +25,14 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
       switch (currency) {
         case 'bnb':
           transferBNB(txId, this, uW.address, amount,
-            (err) => {
-              callback(err)
+            (err, tx) => {
+              callback(err, tx)
             })
           break
         case 'oglc':
           transferCoin(txId, this, uW.address, amount,
-            (err) => {
-              callback(err)
+            (err, tx) => {
+              callback(err, tx)
             })
       }
     } else {
@@ -45,14 +46,24 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
       switch (currency) {
         case 'bnb':
           transferBNB(txId, uW, this.address, amount,
-            (err) => {
-              callback(err)
+            (err, tx) => {
+              if (err) callback(err)
+              exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+                if (err) return callback(err)
+                tx.execute()
+                callback(null, tx)
+              })
             })
           break
         case 'oglc':
           transferCoin(txId, uW, this.address, amount,
-            (err) => {
-              callback(err)
+            (err, tx) => {
+              if (err) callback(err)
+              exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+                if (err) return callback(err)
+                tx.execute()
+                callback(null, tx)
+              })
             })
       }
     } else {
