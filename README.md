@@ -1,7 +1,7 @@
 
 # wallets-manager
 
-`v0.6b` currently. Docs're NOT READY! Code too.
+`v1.0` release candidate.
 
 Start the service:
 

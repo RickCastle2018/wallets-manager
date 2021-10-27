@@ -42,36 +42,38 @@ export default class Tx {
   }
 
   execute () {
-    web3.eth.sendSignedTransaction(this.raw, (hash) => {
-      requestedTransactions.set(hash, this.id)
-    }).once('receipt', (receipt) => {
-      const webhook = {
-        transaction_id: this.id,
-        type: 'internal',
-        successful: receipt.status,
-        gasPaid: receipt.gasUsed,
-        from: this.data.from ? this.data.from : '',
-        to: this.data.to ? this.data.to : ''
-      }
-
-      axios({
-        method: 'post',
-        url: process.env.WEBHOOKS_LISTENER,
-        data: webhook
+    web3.eth.sendSignedTransaction(this.raw)
+      .once('transactionHash', function (hash) {
+        requestedTransactions.set(hash, this.id)
       })
-    }).on('error', (error) => {
-      const webhook = {
-        transaction_id: this.id,
-        type: 'internal',
-        successful: false,
-        error: error.message
-      }
+      .once('receipt', (receipt) => {
+        const webhook = {
+          transaction_id: this.id,
+          type: 'internal',
+          successful: receipt.status,
+          gasPaid: receipt.gasUsed,
+          from: this.data.from ? this.data.from : '',
+          to: this.data.to ? this.data.to : ''
+        }
 
-      axios({
-        method: 'post',
-        url: process.env.WEBHOOKS_LISTENER,
-        data: webhook
+        axios({
+          method: 'post',
+          url: process.env.WEBHOOKS_LISTENER,
+          data: webhook
+        })
+      }).on('error', (error) => {
+        const webhook = {
+          transaction_id: this.id,
+          type: 'internal',
+          successful: false,
+          error: error.message
+        }
+
+        axios({
+          method: 'post',
+          url: process.env.WEBHOOKS_LISTENER,
+          data: webhook
+        })
       })
-    })
   }
 }

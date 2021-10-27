@@ -51,8 +51,8 @@ conn.once('open', () => {
   app.use(express.json())
 
   // trasactions
-  app.use('/transactions*', tx.middleware)
-  app.get('/trasactions/:txId', tx.get)
+  app.use('/transactions/:txId*', tx.middleware)
+  app.get('/transactions/:txId', tx.get)
   app.delete('/transactions/:txId', tx.cancel)
   app.post('/transactions/:txId', tx.proceed)
 

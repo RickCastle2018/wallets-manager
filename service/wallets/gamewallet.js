@@ -20,7 +20,8 @@ gameWalletSchema.methods.getBalance = function (callback) {
   })
 }
 gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientGameId, callback) {
-  loadUserWallet(recipientGameId, (uW) => {
+  loadUserWallet(recipientGameId, (err, uW) => {
+    if (err) return callback(err)
     if (uW) {
       switch (currency) {
         case 'bnb':
@@ -41,7 +42,8 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
   })
 }
 gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId, callback) {
-  loadUserWallet(depositorGameId, (uW) => {
+  loadUserWallet(depositorGameId, (err, uW) => {
+    if (err) return callback(err)
     if (uW) {
       switch (currency) {
         case 'bnb':
@@ -67,7 +69,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
             })
       }
     } else {
-      callback(new Error('no recipient provided'))
+      callback(new Error('user (from) not provided'))
     }
   })
 }

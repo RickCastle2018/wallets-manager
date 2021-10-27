@@ -16,10 +16,6 @@ app.post('/wallets-manager', (req) => {
 })
 
 app.listen(80, () => {
-  function getRandomId () {
-    return Math.floor(Math.random() * 10000)
-  }
-
   function test (handles) {
     handles.forEach(async (handle) => {
       try {
@@ -51,46 +47,20 @@ app.listen(80, () => {
     {
       method: 'get',
       url: 'http://127.0.0.1:2311/game-wallet'
+    },
+    {
+      method: 'post',
+      url: 'http://127.0.0.1:2311/game-wallet/withdraw',
+      data: {
+        transaction_id: 1,
+        amount: '900000000',
+        to: 1, // idInGame
+        currency: 'bnb' // oglc or bnb
+      }
+    },
+    {
+      method: 'get',
+      url: 'http://127.0.0.1:2311/transactions/1'
     }
-    // {
-    //   method: 'post',
-    //   url: 'http://127.0.0.1:2311/game-wallet/withdraw',
-    //   data: {
-    //     transaction_id: getRandomId(),
-    //     amount: '900000000',
-    //     to: 1, // idInGame
-    //     currency: 'bnb' // oglc or bnb
-    //   }
-    // },
-    // {
-    //   method: 'post',
-    //   url: 'http://127.0.0.1:2311/game-wallet/buy',
-    //   data: {
-    //     transaction_id: getRandomId(),
-    //     amount: '900000000',
-    //     from: 1, // idInGame
-    //     currency: 'bnb' // oglc or bnb
-    //   }
-    // },
-    // {
-    //   method: 'post',
-    //   url: 'http://127.0.0.1:2311/user-wallets/1/withdraw',
-    //   data: {
-    //     transaction_id: getRandomId(),
-    //     amount: '1000000000',
-    //     to: '0x24207D31F2439Bfa60B36154eB069198B8143337',
-    //     currency: 'bnb'
-    //   }
-    // },
-    // {
-    //   method: 'post',
-    //   url: 'http://127.0.0.1:2311/user-wallets/1/exchange',
-    //   data: {
-    //     transaction_id: getRandomId(),
-    //     amount: '1000000000',
-    //     to: '0x24207D31F2439Bfa60B36154eB069198B8143337',
-    //     currency: 'bnb'
-    //   }
-    // }
   ])
 })

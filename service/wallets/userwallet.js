@@ -26,7 +26,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
       transferBNB(txId, this, recipientAddress, amount,
         (err, tx) => {
           if (err) callback(err)
-          exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+          exchange([0, 0], this, (tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
             if (err) return callback(err)
             tx.execute()
             callback(null, tx.data)
@@ -37,7 +37,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
       transferCoin(txId, this, recipientAddress, amount,
         (err, tx) => {
           if (err) callback(err)
-          exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+          exchange([0, 0], this, (tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
             if (err) return callback(err)
             tx.execute()
             callback(null, tx.data)
@@ -61,8 +61,10 @@ export default UserWallet
 export function create (userIdInGame, callback) {
   UserWallet.findOne({
     idInGame: userIdInGame
-  }, (err) => {
-    if (err) {
+  }, (err, uW) => {
+    if (err) callback(err)
+
+    if (!uW) {
       const account = web3.eth.accounts.create()
       const userWallet = new UserWallet({
         createdDate: new Date(),
