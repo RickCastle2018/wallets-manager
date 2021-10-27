@@ -95,6 +95,12 @@ Q:
     to: int, // idInGame
     currency: string // oglc or bnb
 }
+
+R: 
+
+{
+	transaction
+}
 ```
 
 #### POST /game-wallet/buy
@@ -110,7 +116,12 @@ Q:
     currency: string, // oglc or bnb
     amount: wei,
     from: int // idInGame
+}
 
+R:
+
+{
+	transaction
 }
 ```
 
@@ -163,6 +174,12 @@ Q:
     amount: wei,
     to: string, // blockchain address
     currency: string // bnb or oglc
+}
+
+R: 
+
+{
+	transaction // as GET /transactions
 }
 ```
 

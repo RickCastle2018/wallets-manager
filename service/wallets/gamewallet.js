@@ -26,13 +26,13 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
         case 'bnb':
           transferBNB(txId, this, uW.address, amount,
             (err, tx) => {
-              callback(err, tx)
+              callback(err, tx.data)
             })
           break
         case 'oglc':
           transferCoin(txId, this, uW.address, amount,
             (err, tx) => {
-              callback(err, tx)
+              callback(err, tx.data)
             })
       }
     } else {
@@ -51,7 +51,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
               exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
                 if (err) return callback(err)
                 tx.execute()
-                callback(null, tx)
+                callback(null, tx.data)
               })
             })
           break
@@ -62,7 +62,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
               exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
                 if (err) return callback(err)
                 tx.execute()
-                callback(null, tx)
+                callback(null, tx.data)
               })
             })
       }
