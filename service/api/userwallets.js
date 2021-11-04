@@ -3,6 +3,7 @@ import {
   load as loadUserWallet,
   loadByAddr as loadUserWalletByAddress
 } from '../wallets/userwallet.js'
+import web3 from '../blockchain/web3.js'
 
 export function create (req, res) {
   createUserWallet(req.params.idInGame, (err, uW) => {
@@ -14,7 +15,7 @@ export function create (req, res) {
 }
 
 export function middleware (req, res, next) {
-  if (isNaN(req.params.idInGame)) {
+  if (web3.utils.isAddress(req.params.idInGame)) {
     loadUserWalletByAddress(req.params.idInGame, (err, uW) => {
       if (err) return res.status(500).send(err.message)
       if (uW) {

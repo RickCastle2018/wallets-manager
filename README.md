@@ -1,7 +1,7 @@
 
 # wallets-manager
 
-`v1.0` release candidate.
+**Status:** Everything with our coin and it's exchange (commision system) almost ready. Getting ready for NFTs, fighting bugs.
 
 Start the service:
 
@@ -11,20 +11,20 @@ Start the service:
 2. `git pull` this repository,
 3. do `cd service` and `npm install`,
 4. create .env file (see example.env),
-5. go back (`cd ..`) and start wallets-manager finally:
+5. go back (`cd ..`) and start:
 
-- startup with blockhain's `mainnet`: `docker-compose up -d`,
-- with blockhain's `testnet`: `docker-compose -f docker-compose.testnet.yml up --build service`
+- `mainnet`: `docker-compose up -d`,
+- `testnet`: `docker-compose -f docker-compose.testnet.yml up --build service`
 
-if you got an error -- contact maintainer :)
+If you got an error -- contact maintainer.
 
 ## API
 
-API methods documentation. Access at `127.0.0.1:2311/... ` without auth. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
+API methods documentation. Access at `127.0.0.1:2311/...` without auth. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
 
-Built with REST in mind. So all query examples are JSON which you have to send in POST-data to service. And there's example for each API method: *Q --  Query struct. R -- Response struct*. If there's no *Responce*, service will return just 200 HTTP code or 500 error.
+Built with REST in mind. So all query examples are JSON which you have to send in POST-data to service. And there's example for each API method: *Q --  Query struct. R -- Response struct*. If there's no *Responce* in example, service will return just 200 HTTP code or 500 error.
 
-**Errors**: if there was an error while method execution, service will return 500 HTTP code, *and short error description*. For example: `Returned error: insufficient funds` or `Returned error: invalid sender` (if it was coder's error). But there was error after transaction check, service will return 200 OK, but then game will get webhook with `error` (see Webhooks section).
+**Errors**: if there was an error while method execution, service will return 500 HTTP code, *and short error description*. For example: `Returned error: insufficient funds` or `Returned error: invalid sender` (if it was coder's error). But if there was error after transaction pre-check, service will return 200 OK, but then game will get webhook with `error` (see Webhooks section).
 
 In examples you can find unusual type *Wei*. In blockchain all money amounts should be provided in Wei. Represented by `string` in JSON. Learn more: https://www.investopedia.com/terms/w/wei.asp
 

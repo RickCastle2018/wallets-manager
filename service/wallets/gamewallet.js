@@ -49,7 +49,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
         case 'bnb':
           transferBNB(txId, uW, this.address, amount,
             (err, tx) => {
-              if (err) callback(err)
+              if (err) return callback(err)
               exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
                 if (err) return callback(err)
                 tx.execute()
@@ -60,7 +60,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
         case 'oglc':
           transferCoin(txId, uW, this.address, amount,
             (err, tx) => {
-              if (err) callback(err)
+              if (err) return callback(err)
               exchange([0, 0], this, (tx.data.feePaid * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
                 if (err) return callback(err)
                 tx.execute()
