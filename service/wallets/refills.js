@@ -32,6 +32,7 @@ export function listenRefills () {
             }
           }
 
+          // TODO: rewrite for NodeCache
           if (!requestedTransactions.includes(t.transactionHash) && found) {
             axios({
               method: 'post',

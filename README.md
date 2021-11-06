@@ -5,7 +5,7 @@
 
 Start the service:
 
-*Before doing steps listed below you must run `test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
+*Before doing steps listed below you must run `api/test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
 
 1. Install Docker, enable it in systemctl,
 2. `git pull` this repository,

@@ -27,6 +27,7 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
         case 'bnb':
           transferBNB(txId, this, uW.address, amount,
             (err, tx) => {
+              // TODO: handle (can't load tx.data)
               callback(err, tx.data)
             })
           break
