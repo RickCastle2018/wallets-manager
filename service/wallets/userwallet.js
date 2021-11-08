@@ -26,7 +26,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
       transferBNB(txId, this, recipientAddress, amount,
         (err, tx) => {
           if (err) callback(err)
-          exchange([0, 0], this, (tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+          exchange([0, 0], this, Math.round(tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
             if (err) return callback(err)
             tx.execute()
             callback(null, tx.data)
@@ -37,7 +37,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
       transferCoin(txId, this, recipientAddress, amount,
         (err, tx) => {
           if (err) callback(err)
-          exchange([0, 0], this, (tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toFixed(8), 'oglc', (err) => {
+          exchange([0, 0], this, Math.round(tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
             if (err) return callback(err)
             tx.execute()
             callback(null, tx.data)

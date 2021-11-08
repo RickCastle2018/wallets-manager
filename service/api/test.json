@@ -16,7 +16,7 @@
    "url": "http://127.0.0.1:2311/game-wallet/withdraw",
    "data": {
      "transaction_id": 1,
-     "amount": "1000000000000000",
+     "amount": "1000000000",
      "to": 1,
      "currency": "bnb"
    }
@@ -30,7 +30,7 @@
    "url": "http://127.0.0.1:2311/game-wallet/buy",
    "data": {
      "transaction_id": 2,
-     "amount": "100000000000000",
+     "amount": "100000000",
      "from": 1,
      "currency": "bnb"
    }
@@ -41,22 +41,93 @@
  },
  {
    "method": "post",
-   "url": "http://127.0.0.1:2311/game-wallet/withdraw",
+   "url": "http://127.0.0.1:2311/game-wallet/buy",
    "data": {
      "transaction_id": 3,
-     "amount": "1000000000000000",
+     "amount": "100000000",
+     "from": 1,
+     "currency": "oglc"
+   }
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/3"
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/game-wallet/withdraw",
+   "data": {
+     "transaction_id": 4,
+     "amount": "100000000",
      "to": 1,
      "currency": "oglc"
    }
  },
  {
    "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/4"
+ },
+ {
+   "method": "post",
    "url": "http://127.0.0.1:2311/game-wallet/buy",
    "data": {
-     "transaction_id": 4,
-     "amount": "100000000000000",
+     "transaction_id": 5,
+     "amount": "100000000",
      "from": 1,
      "currency": "oglc"
    }
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/5"
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/user-wallets/:idInGame/withdraw",
+   "data": {
+     "transaction_id": 6,
+     "amount": "100000000",
+     "to": "string",
+     "currency": "bnb"
+    }
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/6"
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/user-wallets/1/withdraw",
+   "data": {
+     "transaction_id": 7,
+     "amount": "100000000",
+     "to": "string",
+     "currency": "oglc"
+    }
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/7"
+ },
+ {
+   "method": "get",
+   "url": "http://127.0.0.1:2311/user-wallets/:idInGame/exchange"
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/user-wallets/:idInGame/exchange",
+   "data": {
+     "transaction_id": [8, 9],
+     "currency": "bnb",
+     "amount": "100000000"
+   }
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/8"
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/transactions/9"
  }
 ]

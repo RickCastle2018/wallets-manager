@@ -13,8 +13,8 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
 
   switch (currencyFrom) {
     case 'bnb': {
-      const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate))
-      const bnbToTake = web3.utils.toWei(bigAmount)
+      const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).toFixed().toString())
+      const bnbToTake = web3.utils.toWei(bigAmount.toFixed().toString())
 
       loadGameWallet((gW) => {
         transferCoin(
@@ -40,8 +40,8 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
       break
     }
     case 'oglc': {
-      const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate))
-      const coinToTake = web3.utils.toWei(bigAmount)
+      const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).toFixed().toString())
+      const coinToTake = web3.utils.toWei(bigAmount.toFixed().toString())
 
       loadGameWallet((gW) => {
         transferCoin(
