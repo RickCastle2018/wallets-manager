@@ -27,14 +27,15 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
         case 'bnb':
           transferBNB(txId, this, uW.address, amount,
             (err, tx) => {
-              // TODO: handle (can't load tx.data)
-              callback(err, tx.data)
+              if (err) return callback(err)
+              callback(null, tx.data)
             })
           break
         case 'oglc':
           transferCoin(txId, this, uW.address, amount,
             (err, tx) => {
-              callback(err, tx.data)
+              if (err) return callback(err)
+              callback(null, tx.data)
             })
       }
     } else {
@@ -46,13 +47,16 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
   loadUserWallet(depositorGameId, (err, uW) => {
     if (err) return callback(err)
     if (uW) {
+      // TODO: no code repeating
       switch (currency) {
         case 'bnb':
           transferBNB(txId, uW, this.address, amount,
             (err, tx) => {
               if (err) return callback(err)
-              exchange([0, 0], this, Math.round(tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+
+              exchange([Math.round(Math.random() * 100000), Math.round(Math.random() * 100000)], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
                 if (err) return callback(err)
+
                 tx.execute()
                 callback(null, tx.data)
               })
@@ -62,8 +66,9 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           transferCoin(txId, uW, this.address, amount,
             (err, tx) => {
               if (err) return callback(err)
-              exchange([0, 0], this, Math.round(tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+              exchange([Math.round(Math.random() * 100000), Math.round(Math.random() * 100000)], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
                 if (err) return callback(err)
+
                 tx.execute()
                 callback(null, tx.data)
               })

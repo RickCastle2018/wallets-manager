@@ -13,8 +13,8 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
 
   switch (currencyFrom) {
     case 'bnb': {
-      const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).toFixed().toString())
-      const bnbToTake = web3.utils.toWei(bigAmount.toFixed().toString())
+      const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).toFixed(14).toString())
+      const bnbToTake = web3.utils.toWei(bigAmount.toFixed(14).toString())
 
       loadGameWallet((gW) => {
         transferCoin(
@@ -22,26 +22,28 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
           gW,
           user.address,
           coinsToSend,
-          (err) => {
-            callback(err)
-          }
-        )
+          (err, tx) => {
+            if (err) return callback(err)
+            tx.execute()
 
-        transferBNB(
-          txIds[1],
-          user,
-          gW.address,
-          bnbToTake,
-          (err) => {
-            callback(err)
+            transferBNB(
+              txIds[1],
+              user,
+              gW.address,
+              bnbToTake,
+              (err, tx) => {
+                if (err) return callback(err)
+                tx.execute()
+              }
+            )
           }
         )
       })
       break
     }
     case 'oglc': {
-      const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).toFixed().toString())
-      const coinToTake = web3.utils.toWei(bigAmount.toFixed().toString())
+      const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).toFixed(14).toString())
+      const coinToTake = web3.utils.toWei(bigAmount.toFixed(14).toString())
 
       loadGameWallet((gW) => {
         transferCoin(
@@ -49,21 +51,24 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
           user,
           gW.address,
           coinToTake,
-          (err) => {
-            callback(err)
-          }
-        )
+          (err, tx) => {
+            if (err) return callback(err)
+            tx.execute()
 
-        transferBNB(
-          txIds[1],
-          gW,
-          user.address,
-          bnbToSend,
-          (err) => {
-            callback(err)
+            transferBNB(
+              txIds[1],
+              gW,
+              user.address,
+              bnbToSend,
+              (err, tx) => {
+                if (err) return callback(err)
+                tx.execute()
+              }
+            )
           }
         )
       })
+
       break
     }
   }

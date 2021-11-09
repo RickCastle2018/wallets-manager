@@ -8,7 +8,7 @@ import web3 from '../blockchain/web3.js'
 export function create (req, res) {
   createUserWallet(req.params.idInGame, (err, uW) => {
     if (err) return res.send(err.message)
-    return res.send({
+    res.send({
       address: uW.address
     })
   })
@@ -51,7 +51,7 @@ export function withdraw (req, res) {
 
   req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err, data) => {
     if (err) return res.status(500).send(err.message)
-    return res.status(200).send(data)
+    res.status(200).send(data)
   })
 }
 
@@ -67,6 +67,6 @@ export function exchange (req, res) {
 
   req.userWallet.exchange(req.body.transaction_id, req.body.currency, req.body.amount, (err) => {
     if (err) return res.status(500).send(err.message)
-    return res.status(200).send()
+    res.status(200).send()
   })
 }

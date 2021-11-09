@@ -25,22 +25,26 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
     case 'bnb':
       transferBNB(txId, this, recipientAddress, amount,
         (err, tx) => {
-          if (err) callback(err)
-          exchange([0, 0], this, Math.round(tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+          if (err) return callback(err)
+
+          exchange([Math.round(Math.random() * 100000), Math.round(Math.random() * 100000)], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
             if (err) return callback(err)
-            tx.execute()
             callback(null, tx.data)
+            tx.execute()
           })
         })
       break
     case 'oglc':
       transferCoin(txId, this, recipientAddress, amount,
         (err, tx) => {
-          if (err) callback(err)
-          exchange([0, 0], this, Math.round(tx.data.feePaid * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+          if (err) return callback(err)
+
+          exchange([Math.round(Math.random() * 100000), Math.round(Math.random() * 100000)], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+            console.log('FUCK!', tx)
+
             if (err) return callback(err)
-            tx.execute()
             callback(null, tx.data)
+            tx.execute()
           })
         })
       break

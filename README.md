@@ -198,7 +198,7 @@ R:
 
 #### POST /user-wallets/{user_id}/exchange
 
-Exchange. Transactions will be placed into queue. Game will get 2 webhooks.
+Exchange. Transactions will be executed right away. Game will get 2 webhooks.
 
 ```js
 Q:

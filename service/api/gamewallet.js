@@ -13,7 +13,7 @@ export function middleware (req, res, next) {
 
 export function get (req, res) {
   req.gameWallet.getBalance((err, b) => {
-    if (err) res.status(500).send(err.message)
+    if (err) return res.status(500).send(err.message)
     res.send({
       address: req.gameWallet.address,
       balance: b
@@ -22,21 +22,21 @@ export function get (req, res) {
 }
 
 export function withdraw (req, res) {
-  if (!req.body.currency) res.status(500).send('no currency provided')
+  if (!req.body.currency) return res.status(500).send('no currency provided')
 
   req.gameWallet.withdraw(req.body.transaction_id, req.body.currency, req.body.amount, req.body.to,
     (err, data) => {
       if (err) return res.status(500).send(err.message)
-      return res.status(200).send(data)
+      res.status(200).send(data)
     })
 }
 
 export function buy (req, res) {
-  if (!req.body.currency) res.status(500).send('no currency provided')
+  if (!req.body.currency) return res.status(500).send('no currency provided')
 
   req.gameWallet.buy(req.body.transaction_id, req.body.currency, req.body.amount, req.body.from,
     (err, data) => {
       if (err) return res.status(500).send(err.message)
-      return res.status(200).send(data)
+      res.status(200).send(data)
     })
 }

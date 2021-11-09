@@ -83,11 +83,11 @@
  },
  {
    "method": "post",
-   "url": "http://127.0.0.1:2311/user-wallets/:idInGame/withdraw",
+   "url": "http://127.0.0.1:2311/user-wallets/1/withdraw",
    "data": {
      "transaction_id": 6,
      "amount": "100000000",
-     "to": "string",
+     "to": "0xFFAC005A8f7EC4e9943b2C8e7991C72f5cec4fD1",
      "currency": "bnb"
     }
  },
@@ -101,7 +101,7 @@
    "data": {
      "transaction_id": 7,
      "amount": "100000000",
-     "to": "string",
+     "to": "0xFFAC005A8f7EC4e9943b2C8e7991C72f5cec4fD1",
      "currency": "oglc"
     }
  },
@@ -111,15 +111,15 @@
  },
  {
    "method": "get",
-   "url": "http://127.0.0.1:2311/user-wallets/:idInGame/exchange"
+   "url": "http://127.0.0.1:2311/user-wallets/1/exchange"
  },
  {
    "method": "post",
-   "url": "http://127.0.0.1:2311/user-wallets/:idInGame/exchange",
+   "url": "http://127.0.0.1:2311/user-wallets/1/exchange",
    "data": {
      "transaction_id": [8, 9],
      "currency": "bnb",
-     "amount": "100000000"
+     "amount": "10000000"
    }
  },
  {
