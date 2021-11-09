@@ -54,9 +54,8 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
             (err, tx) => {
               if (err) return callback(err)
 
-              exchange([Math.round(Math.random() * 100000), Math.round(Math.random() * 100000)], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
                 if (err) return callback(err)
-
                 tx.execute()
                 callback(null, tx.data)
               })
@@ -66,9 +65,8 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           transferCoin(txId, uW, this.address, amount,
             (err, tx) => {
               if (err) return callback(err)
-              exchange([Math.round(Math.random() * 100000), Math.round(Math.random() * 100000)], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
                 if (err) return callback(err)
-
                 tx.execute()
                 callback(null, tx.data)
               })
