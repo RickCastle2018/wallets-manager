@@ -54,9 +54,8 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
             (err, tx) => {
               if (err) return callback(err)
 
-              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
                 if (err) return callback(err)
-                tx.execute()
                 callback(null, tx.data)
               })
             })
@@ -65,9 +64,9 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           transferCoin(txId, uW, this.address, amount,
             (err, tx) => {
               if (err) return callback(err)
-              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+
+              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
                 if (err) return callback(err)
-                tx.execute()
                 callback(null, tx.data)
               })
             })
@@ -80,6 +79,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
 const GameWallet = mongoose.model('GameWallet', gameWalletSchema)
 export default GameWallet
 
+// TODO: cache! do not load from db everytime!
 export function load (callback) {
   GameWallet.find({}, (err, gameWallets) => {
     if (err) return console.error(err)
