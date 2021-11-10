@@ -27,10 +27,9 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
         (err, tx) => {
           if (err) return callback(err)
 
-          exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+          exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
             if (err) return callback(err)
             callback(null, tx.data)
-            tx.execute()
           })
         })
       break
@@ -39,10 +38,9 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
         (err, tx) => {
           if (err) return callback(err)
 
-          exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toString(), 'oglc', (err) => {
+          exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
             if (err) return callback(err)
             callback(null, tx.data)
-            tx.execute()
           })
         })
       break
