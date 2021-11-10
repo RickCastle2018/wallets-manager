@@ -121,13 +121,5 @@
      "currency": "bnb",
      "amount": "10000000"
    }
- },
- {
-   "method": "post",
-   "url": "http://127.0.0.1:2311/transactions/8"
- },
- {
-   "method": "post",
-   "url": "http://127.0.0.1:2311/transactions/9"
  }
 ]

@@ -49,7 +49,7 @@ export function get (req, res) {
 export function withdraw (req, res) {
   if (!req.body.currency) return res.status(500).send('no currency provided')
 
-  req.userWallet.withdraw(req.body.transaction_id, req.body.amount, req.body.to, (err, data) => {
+  req.userWallet.withdraw(req.body.transaction_id, req.body.currency, req.body.amount, req.body.to, (err, data) => {
     if (err) return res.status(500).send(err.message)
     res.status(200).send(data)
   })

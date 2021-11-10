@@ -24,7 +24,7 @@ app.post('/wallets-manager', (req) => {
 })
 
 function test (handles, i) {
-  if (handles[i] === undefined) return
+  if (handles[i] === undefined) return console.log('all requests sended, check webhooks')
 
   axios({
     method: handles[i].method,
@@ -54,7 +54,7 @@ function start (webhooks) {
     handles.forEach(handle => {
       if ('data' in handle) webhooksCount++
     })
-    console.log(webhooksCount, ' webhooks should be received')
+    console.log(webhooksCount, ' general webhooks should be received. Check internal exchange (IDc and IDb) webhooks')
   }
 
   test(handles, 0) // stunning recursive function!

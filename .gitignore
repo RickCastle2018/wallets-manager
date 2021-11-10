@@ -1,5 +1,6 @@
 /db/data/*
 /db/backups/*
 /service/node_modules
+/service/exceptions.log
 .env
 README.md.backup
