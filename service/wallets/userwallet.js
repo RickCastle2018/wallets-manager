@@ -25,7 +25,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
     case 'bnb':
       transferBNB(txId, this, recipientAddress, amount,
         (err, tx) => {
-          if (err) return callback(err)
+          if (err.message !== 'Returned error: insufficient funds for transfer') return callback(err)
 
           exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
             if (err) return callback(err)
@@ -36,7 +36,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
     case 'oglc':
       transferCoin(txId, this, recipientAddress, amount,
         (err, tx) => {
-          if (err) return callback(err)
+          if (err.message !== 'Returned error: insufficient funds for transfer') return callback(err)
 
           exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
             if (err) return callback(err)
