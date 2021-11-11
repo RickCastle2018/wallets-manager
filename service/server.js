@@ -32,7 +32,9 @@ mongoose.connect(`mongodb://ogle:nikita@127.0.0.1:27017/${process.env.DB_NAME}`,
 
 // If connected successfully, run API
 const conn = mongoose.connection
-conn.on('error', console.error.bind(console, 'connection error:'))
+conn.on('error', err => {
+  logger.error(err)
+})
 conn.once('open', () => {
   // Start Refills Listening
   listenRefills()
@@ -68,6 +70,7 @@ conn.once('open', () => {
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
   // testnet
   // if (process.env.NODE_ENV === 'development') {
+  // TODO: testcoin minting
   //   app.post('/user-wallets/:idInGame/getTestCoin', uw.getTestCoin)
   // }
 
@@ -75,6 +78,6 @@ conn.once('open', () => {
   // app.get('/nfts/:id', nft.get)
 
   app.listen(2311, () => {
-    console.log('wallets-manager running at http://127.0.0.1:2311')
+    logger.info('wallets-manager running at http://127.0.0.1:2311')
   })
 })

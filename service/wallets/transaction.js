@@ -44,6 +44,7 @@ export default class Tx {
     return this
   }
 
+  // TODO: only if needed ADD PARAM TO JSON
   enqueue (extra) {
     this.data = extra
     txStorage.set(this.id, this)
