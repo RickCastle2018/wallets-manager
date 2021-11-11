@@ -8,22 +8,18 @@ import * as gw from './api/gamewallet.js'
 import * as uw from './api/userwallets.js'
 import * as tx from './api/transactions.js'
 
-const { createLogger, transports } = winston
+const { createLogger, transports, format } = winston
 const logger = createLogger({
   transports: [
     new transports.Console(),
     new transports.File({ filename: 'service.log' })
-  ]
-  // TODO: v0.6.1
-  // format: format.combine(
-  //   format.label({
-  //     label: 'v0.6'
-  //   }),
-  //   format.timestamp({
-  //     format: 'MMM-DD-YYYY HH:mm:ss'
-  //   }),
-  //   format.printf(info => `${info.level}: ${info.label}: ${[info.timestamp]}: ${info.message}`)
-  // )
+  ],
+  format: format.combine(
+    format.timestamp({
+      format: 'MMM-DD-YYYY HH:mm:ss'
+    }),
+    format.printf(info => `${info.level}: ${[info.timestamp]}: ${info.message}`)
+  )
 })
 logger.exceptions.handle(new transports.Console(),
   new transports.File({ filename: 'exceptions.log' }))
