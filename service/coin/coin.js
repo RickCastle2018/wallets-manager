@@ -33,7 +33,7 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
           gas: estimatedGas
         }
 
-        if (err) return callback(err)
+        if (err && err.message !== 'Returned error: insufficient funds for transfer') return callback(err)
 
         const tx = new Tx(txId, fromUser.privateKey, txObject)
         tx.enqueue({
