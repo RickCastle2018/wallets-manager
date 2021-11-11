@@ -8,35 +8,33 @@ import * as gw from './api/gamewallet.js'
 import * as uw from './api/userwallets.js'
 import * as tx from './api/transactions.js'
 
-const { createLogger, transports } = winston
+const { createLogger, transports, format } = winston
 const logger = createLogger({
   transports: [
     new transports.Console(),
     new transports.File({ filename: 'service.log' })
-  ]
-  // TODO: v0.6.1
-  // format: format.combine(
-  //   format.label({
-  //     label: 'v0.6'
-  //   }),
-  //   format.timestamp({
-  //     format: 'MMM-DD-YYYY HH:mm:ss'
-  //   }),
-  //   format.printf(info => `${info.level}: ${info.label}: ${[info.timestamp]}: ${info.message}`)
-  // )
+  ],
+  format: format.combine(
+    format.timestamp({
+      format: 'MMM-DD-YYYY HH:mm:ss'
+    }),
+    format.printf(info => `${info.level}: ${[info.timestamp]}: ${info.message}`)
+  )
 })
 logger.exceptions.handle(new transports.Console(),
   new transports.File({ filename: 'exceptions.log' }))
 
 // Start mongoose connection
-mongoose.connect(`mongodb://127.0.0.1:27017/${process.env.DB_NAME}`, {
+mongoose.connect(`mongodb://ogle:nikita@127.0.0.1:27017/${process.env.DB_NAME}`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
 
 // If connected successfully, run API
 const conn = mongoose.connection
-conn.on('error', console.error.bind(console, 'connection error:'))
+conn.on('error', err => {
+  logger.error(err)
+})
 conn.once('open', () => {
   // Start Refills Listening
   listenRefills()
@@ -72,6 +70,7 @@ conn.once('open', () => {
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
   // testnet
   // if (process.env.NODE_ENV === 'development') {
+  // TODO: testcoin minting
   //   app.post('/user-wallets/:idInGame/getTestCoin', uw.getTestCoin)
   // }
 
@@ -79,6 +78,6 @@ conn.once('open', () => {
   // app.get('/nfts/:id', nft.get)
 
   app.listen(2311, () => {
-    console.log('wallets-manager running at http://127.0.0.1:2311')
+    logger.info('wallets-manager running at http://127.0.0.1:2311')
   })
 })

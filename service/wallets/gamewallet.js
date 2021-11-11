@@ -7,7 +7,7 @@ import exchange from '../coin/exchange.js' // used for OGLC commisions
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
-  privateKey: String
+  privateKey: String // TODO: encrypt DB
 })
 gameWalletSchema.methods.getBalance = function (callback) {
   coin.methods.balanceOf(this.address).call().then((coins) => {
@@ -54,7 +54,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
             (err, tx) => {
               if (err) return callback(err)
 
-              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+              exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
                 if (err) return callback(err)
                 callback(null, tx.data)
               })
@@ -65,7 +65,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
             (err, tx) => {
               if (err) return callback(err)
 
-              exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+              exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
                 if (err) return callback(err)
                 callback(null, tx.data)
               })

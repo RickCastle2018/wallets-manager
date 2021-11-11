@@ -27,7 +27,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
         (err, tx) => {
           if (err) return callback(err)
 
-          exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+          exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
             if (err) return callback(err)
             callback(null, tx.data)
           })
@@ -38,7 +38,7 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
         (err, tx) => {
           if (err) return callback(err)
 
-          exchange([txId + 'c', txId + 'b'], this, Math.round(tx.data.fee * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+          exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
             if (err) return callback(err)
             callback(null, tx.data)
           })

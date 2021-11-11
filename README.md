@@ -32,7 +32,7 @@ In examples you can find unusual type *Wei*. In blockchain all money amounts sho
 
 When game makes POST request, which supposed to move any funds (oglc/bnb/nft), transaction queue comes into play. 
 
-For example, game does `POST /game-wallet/withdraw`: service will return *calculations* for transaction (fees, bnb-to-move, etc.) and if game provided `placeToQueue: true` in request, transaction will be prepared and waiting.
+For example, game does `POST /game-wallet/withdraw`: service will return *calculations* for transaction (fees, bnb-to-move, etc.) and transaction will be prepared and waiting for execution (POST /transactions).
 
 #### GET /transactions/{transaction_id}
 
