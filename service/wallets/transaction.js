@@ -54,7 +54,7 @@ export default class Tx {
     txStorage.del(this.id)
   }
 
-  execute () {
+  execute (callback) {
     getAndIncrementNonce(this.txObject.from, (txCount) => {
       this.txObject.nonce = txCount
 
@@ -80,6 +80,8 @@ export default class Tx {
             to: this.data.to ? this.data.to : ''
           }
 
+          if (callback) callback()
+
           axios({
             method: 'post',
             url: process.env.WEBHOOKS_LISTENER,
@@ -100,6 +102,8 @@ export default class Tx {
             successful: false,
             error: error.message
           }
+
+          if (callback) callback(error)
 
           axios({
             method: 'post',

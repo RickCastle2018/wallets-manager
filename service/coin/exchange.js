@@ -33,6 +33,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
               bnbToTake,
               (err, tx) => {
                 if (err) return callback(err)
+                callback()
                 tx.execute()
               }
             )
@@ -62,6 +63,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
               bnbToSend,
               (err, tx) => {
                 if (err) return callback(err)
+                callback()
                 tx.execute()
               }
             )
@@ -72,6 +74,4 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
       break
     }
   }
-
-  callback()
 }

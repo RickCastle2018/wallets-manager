@@ -4,6 +4,7 @@ import { transfer as transferBNB } from '../blockchain/bnb.js'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadUserWallet } from './userwallet.js'
 import exchange from '../coin/exchange.js' // used for OGLC commisions
+import initialRefill from './initialrefill.js'
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
@@ -44,36 +45,40 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
   })
 }
 gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId, callback) {
-  loadUserWallet(depositorGameId, (err, uW) => {
+  initialRefill(depositorGameId, (err) => {
     if (err) return callback(err)
-    if (uW) {
-      // TODO: no code repeating
-      switch (currency) {
-        case 'bnb':
-          transferBNB(txId, uW, this.address, amount,
-            (err, tx) => {
-              if (err) return callback(err)
 
-              exchange([txId + 'c', txId + 'b'], uW, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+    loadUserWallet(depositorGameId, (err, uW) => {
+      if (err) return callback(err)
+      if (uW) {
+        // TODO: no code repeating
+        switch (currency) {
+          case 'bnb':
+            transferBNB(txId, uW, this.address, amount,
+              (err, tx) => {
                 if (err) return callback(err)
-                callback(null, tx.data)
-              })
-            })
-          break
-        case 'oglc':
-          transferCoin(txId, uW, this.address, amount,
-            (err, tx) => {
-              if (err) return callback(err)
 
-              exchange([txId + 'c', txId + 'b'], uW, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
-                if (err) return callback(err)
-                callback(null, tx.data)
+                exchange([txId + 'c', txId + 'b'], uW, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+                  if (err) return callback(err)
+                  return callback(null, tx.data)
+                })
               })
-            })
+            break
+          case 'oglc':
+            transferCoin(txId, uW, this.address, amount,
+              (err, tx) => {
+                if (err) return callback(err)
+
+                exchange([txId + 'c', txId + 'b'], uW, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
+                  if (err) return callback(err)
+                  return callback(null, tx.data)
+                })
+              })
+        }
+      } else {
+        callback(new Error('user (from) not provided'))
       }
-    } else {
-      callback(new Error('user (from) not provided'))
-    }
+    })
   })
 }
 const GameWallet = mongoose.model('GameWallet', gameWalletSchema)
