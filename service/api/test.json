@@ -1,11 +1,11 @@
 [
  {
    "method": "put",
-   "url": "http://127.0.0.1:2311/user-wallets/1"
+   "url": "http://127.0.0.1:2311/user-wallets/12"
  },
  {
    "method": "get",
-   "url": "http://127.0.0.1:2311/user-wallets/1"
+   "url": "http://127.0.0.1:2311/user-wallets/12"
  },
  {
    "method": "get",
@@ -17,7 +17,7 @@
    "data": {
      "transaction_id": 1,
      "amount": "1000000000",
-     "to": 1,
+     "to": 12,
      "currency": "bnb"
    }
  },
@@ -31,7 +31,7 @@
    "data": {
      "transaction_id": 2,
      "amount": "100000000",
-     "from": 1,
+     "from": 12,
      "currency": "bnb"
    }
  },
@@ -45,7 +45,7 @@
    "data": {
      "transaction_id": 3,
      "amount": "100000000",
-     "from": 1,
+     "from": 12,
      "currency": "oglc"
    }
  },
@@ -59,7 +59,7 @@
    "data": {
      "transaction_id": 4,
      "amount": "100000000",
-     "to": 1,
+     "to": 12,
      "currency": "oglc"
    }
  },
@@ -73,7 +73,7 @@
    "data": {
      "transaction_id": 5,
      "amount": "100000000",
-     "from": 1,
+     "from": 12,
      "currency": "oglc"
    }
  },
