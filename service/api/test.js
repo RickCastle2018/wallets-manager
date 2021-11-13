@@ -40,13 +40,16 @@ function test (handles, i) {
     })
     .catch(err => {
       if (!err.response) return console.log(`service down! fatal ${i + 1}`)
-      console.error(`err: ${i + 1}`, err.response.data)
+      console.log(`err: ${i + 1}`, err.response.data)
       test(handles, i + 1)
     })
 }
 
 function start (webhooks) {
-  const handles = JSON.parse(readFileSync('./test.json', 'utf8'))
+  let filename = 'test.json'
+  if (process.argv[3]) filename = process.argv[3]
+
+  const handles = JSON.parse(readFileSync('./' + filename, 'utf8'))
   console.log('Requests to test: ', handles.length)
 
   if (webhooks) {

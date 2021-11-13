@@ -3,8 +3,9 @@ import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadUserWallet } from './userwallet.js'
-import exchange from '../coin/exchange.js' // used for OGLC commisions
 import initialRefill from './initialrefill.js'
+import comissionExchange from './comissionexchange.js'
+import logger from '../utils/logger.js'
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
@@ -51,30 +52,18 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
     loadUserWallet(depositorGameId, (err, uW) => {
       if (err) return callback(err)
       if (uW) {
-        // TODO: no code repeating
-        switch (currency) {
-          case 'bnb':
-            transferBNB(txId, uW, this.address, amount,
-              (err, tx) => {
-                if (err) return callback(err)
+        let transfer = transferCoin
+        if (currency === 'bnb') transfer = transferBNB
 
-                exchange([txId + 'c', txId + 'b'], uW, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
-                  if (err) return callback(err)
-                  return callback(null, tx.data)
-                })
-              })
-            break
-          case 'oglc':
-            transferCoin(txId, uW, this.address, amount,
-              (err, tx) => {
-                if (err) return callback(err)
+        transfer(txId, uW, this.address, amount,
+          (err, tx) => {
+            if (err) return callback(err)
 
-                exchange([txId + 'c', txId + 'b'], uW, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
-                  if (err) return callback(err)
-                  return callback(null, tx.data)
-                })
-              })
-        }
+            comissionExchange(tx, uW, (err) => {
+              if (err) return callback(err)
+              return callback(null, tx.data)
+            })
+          })
       } else {
         callback(new Error('user (from) not provided'))
       }
@@ -87,7 +76,7 @@ export default GameWallet
 // TODO: cache! do not load from db everytime!
 export function load (callback) {
   GameWallet.find({}, (err, gameWallets) => {
-    if (err) return console.error(err)
+    if (err) return logger.error(err)
 
     if (gameWallets.length < 1) {
       const account = web3.eth.accounts.create()
@@ -96,7 +85,7 @@ export function load (callback) {
         privateKey: account.privateKey
       })
       gW.save((err) => {
-        if (err) return console.error(err)
+        if (err) return logger.error(err)
       })
       callback(gW)
     } else {

@@ -1,48 +1,26 @@
-import winston from 'winston'
 import mongoose from 'mongoose'
 import express from 'express'
 
-import { listenRefills } from './wallets/refills.js'
+// import { listenRefills } from './wallets/refills.js'
+import logger from './utils/logger.js'
 
 import * as gw from './api/gamewallet.js'
 import * as uw from './api/userwallets.js'
 import * as tx from './api/transactions.js'
 
-const { createLogger, transports, format } = winston
-const logger = createLogger({
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: 'service.log' })
-  ],
-  format: format.combine(
-    format.timestamp({
-      format: 'MMM-DD-YYYY HH:mm:ss'
-    }),
-    format.printf(info => `${info.level}: ${[info.timestamp]}: ${info.message}`)
-  )
-})
-logger.exceptions.handle(new transports.Console(),
-  new transports.File({ filename: 'exceptions.log' }))
-
-// Start mongoose connection
 mongoose.connect(`mongodb://ogle:nikita@127.0.0.1:27017/${process.env.DB_NAME}`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
 
-// If connected successfully, run API
 const conn = mongoose.connection
 conn.on('error', err => {
   logger.error(err)
 })
 conn.once('open', () => {
-  // Start Refills Listening
-  listenRefills()
+  // listenRefills()
 
-  // Define express.js app
   const app = express()
-
-  // Auto JSON responces parsing&marshalling
   app.use(express.urlencoded({
     extended: true
   }))
@@ -68,11 +46,6 @@ conn.once('open', () => {
   // exchange
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
-  // testnet
-  // if (process.env.NODE_ENV === 'development') {
-  // TODO: testcoin minting
-  //   app.post('/user-wallets/:idInGame/getTestCoin', uw.getTestCoin)
-  // }
 
   // TODO: nfts
   // app.get('/nfts/:id', nft.get)

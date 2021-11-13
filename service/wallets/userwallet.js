@@ -4,6 +4,7 @@ import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import exchange from '../coin/exchange.js' // also, used for OGLC commisions
 import initialRefill from './initialrefill.js'
+import comissionExchange from './comissionexchange.js'
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -25,30 +26,18 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
   initialRefill(this.idInGame, (err) => {
     if (err) return callback(err)
 
-    switch (currency) {
-      case 'bnb':
-        transferBNB(txId, this, recipientAddress, amount,
-          (err, tx) => {
-            if (err) return callback(err)
+    let transfer = transferCoin
+    if (currency === 'bnb') transfer = transferBNB
 
-            exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
-              if (err) return callback(err)
-              callback(null, tx.data)
-            })
-          })
-        break
-      case 'oglc':
-        transferCoin(txId, this, recipientAddress, amount,
-          (err, tx) => {
-            if (err) return callback(err)
+    transfer(txId, this, recipientAddress, amount,
+      (err, tx) => {
+        if (err) return callback(err)
 
-            exchange([txId + 'c', txId + 'b'], this, Math.round(web3.utils.toWei((tx.data.fee * 5).toString(), 'gwei') * 2 * process.env.BNB_PRICE * 1.1).toFixed().toString(), 'oglc', (err) => {
-              if (err) return callback(err)
-              callback(null, tx.data)
-            })
-          })
-        break
-    }
+        comissionExchange(tx, this, (err) => {
+          if (err) return callback(err)
+          callback(null, tx.data)
+        })
+      })
   })
 }
 userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, callback) {

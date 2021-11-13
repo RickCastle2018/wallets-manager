@@ -2,6 +2,7 @@ import axios from 'axios'
 import NodeCache from 'node-cache'
 import coin from '../coin/coin.js'
 import { loadByAddr as loadUserWalletId } from './userwallet.js'
+import logger from '../utils/logger.js'
 
 export const requestedTransactions = new NodeCache({
   checkperiod: 0,
@@ -20,7 +21,7 @@ export function listenRefills () {
     .on('data', (t) => {
       loadUserWalletId(t.returnValues.to, (found, userWalletId) => {
         coin.methods.balanceOf(t.returnValues.to, (err, b) => {
-          if (err) return console.error(err)
+          if (err) return logger.error(err)
 
           const webhook = {
             transaction_id: 0,
@@ -49,6 +50,6 @@ export function listenRefills () {
       })
     })
     .on('error', (err) => {
-      console.error(err)
+      logger.error(err)
     })
 }
