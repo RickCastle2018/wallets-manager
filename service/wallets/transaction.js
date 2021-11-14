@@ -71,6 +71,8 @@ export default class Tx {
           requestedTransactions.set(hash, this.id)
         })
         .once('receipt', (receipt) => {
+          if (callback) callback()
+
           const webhook = {
             transaction_id: this.id,
             type: 'internal',
@@ -80,14 +82,14 @@ export default class Tx {
             to: this.data.to ? this.data.to : ''
           }
 
-          if (callback) callback()
-
           axios({
             method: 'post',
             url: process.env.WEBHOOKS_LISTENER,
             data: webhook
           })
         }).on('error', (error) => {
+          if (callback) callback(error)
+
           web3.eth.getTransactionCount(this.txObject.from, 'pending')
             .then((txCount) => {
               const nonce = nonceCache.take(this.txObject.from)
@@ -102,8 +104,6 @@ export default class Tx {
             successful: false,
             error: error.message
           }
-
-          if (callback) callback(error)
 
           axios({
             method: 'post',

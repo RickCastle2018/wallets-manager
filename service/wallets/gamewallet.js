@@ -46,12 +46,12 @@ gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientG
   })
 }
 gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId, callback) {
-  initialRefill(depositorGameId, (err) => {
+  loadUserWallet(depositorGameId, (err, uW) => {
     if (err) return callback(err)
+    if (uW) {
+      initialRefill(depositorGameId, (err) => {
+        if (err) return callback(err)
 
-    loadUserWallet(depositorGameId, (err, uW) => {
-      if (err) return callback(err)
-      if (uW) {
         let transfer = transferCoin
         if (currency === 'bnb') transfer = transferBNB
 
@@ -64,10 +64,10 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
               return callback(null, tx.data)
             })
           })
-      } else {
-        callback(new Error('user (from) not provided'))
-      }
-    })
+      })
+    } else {
+      callback(new Error('user (from) not provided'))
+    }
   })
 }
 const GameWallet = mongoose.model('GameWallet', gameWalletSchema)

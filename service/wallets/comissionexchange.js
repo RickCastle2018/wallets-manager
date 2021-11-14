@@ -4,13 +4,13 @@ import exchange from '../coin/exchange.js'
 
 export default function comissionExchange (tx, uW, callback) {
   web3.eth.getGasPrice().then((gasPrice) => {
-    const bnbFee = new BigNumber(web3.utils.toWei((tx.data.fee * gasPrice).toString(), 'gwei'))
+    const bnbFee = new BigNumber(web3.utils.toWei((tx.data.fee * web3.utils.fromWei(gasPrice, 'gwei')).toString(), 'gwei'))
     const coinAmount = bnbFee.multipliedBy(2).multipliedBy(parseInt(process.env.BNB_PRICE))
 
-    console.log('FUCK: ', bnbFee.toString(), ' ', coinAmount.toString())
-
-    exchange([tx.id + 'c', tx.id + 'b'], uW, coinAmount.toString(), 'oglc', (err) => {
-      return callback(err)
-    })
+    exchange([tx.id + 'c', tx.id + 'b'], uW, coinAmount.toString(), 'oglc',
+      (err) => {
+        console.log(err)
+        return callback(err)
+      })
   })
 }

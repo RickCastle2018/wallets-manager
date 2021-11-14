@@ -1,0 +1,24 @@
+[
+  {
+    "method": "put",
+    "url": "http://127.0.0.1:2311/user-wallets/27"
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/user-wallets/27"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/game-wallet/buy",
+    "data": {
+      "transaction_id": 2,
+      "amount": "100000000",
+      "from": 27,
+      "currency": "oglc"
+    }
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/2"
+  }
+]
