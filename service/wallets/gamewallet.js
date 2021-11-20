@@ -3,13 +3,12 @@ import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadUserWallet } from './userwallet.js'
-import initialRefill from './initialrefill.js'
 import comissionExchange from './comissionexchange.js'
 import logger from '../utils/logger.js'
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
-  privateKey: String // TODO: encrypt DB
+  privateKey: String
 })
 gameWalletSchema.methods.getBalance = function (callback) {
   coin.methods.balanceOf(this.address).call().then((coins) => {
@@ -49,7 +48,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
   loadUserWallet(depositorGameId, (err, uW) => {
     if (err) return callback(err)
     if (uW) {
-      initialRefill(depositorGameId, (err) => {
+      uW.activate((err) => {
         if (err) return callback(err)
 
         let transfer = transferCoin
@@ -73,24 +72,25 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
 const GameWallet = mongoose.model('GameWallet', gameWalletSchema)
 export default GameWallet
 
-// TODO: cache! do not load from db everytime!
+// game-wallet init
+export let gameWallet
+export async function init () {
+  const gameWallets = await GameWallet.find({})
+  if (gameWallets.length < 1) {
+    const account = web3.eth.accounts.create()
+    const gW = new GameWallet({
+      address: account.address,
+      privateKey: account.privateKey
+    })
+    gW.save((err) => {
+      if (err) return logger.error(err)
+    })
+    gameWallet = gW
+  } else {
+    const gW = gameWallets[0]
+    gameWallet = gW
+  }
+}
 export function load (callback) {
-  GameWallet.find({}, (err, gameWallets) => {
-    if (err) return logger.error(err)
-
-    if (gameWallets.length < 1) {
-      const account = web3.eth.accounts.create()
-      const gW = new GameWallet({
-        address: account.address,
-        privateKey: account.privateKey
-      })
-      gW.save((err) => {
-        if (err) return logger.error(err)
-      })
-      callback(gW)
-    } else {
-      const gW = gameWallets[0]
-      callback(gW)
-    }
-  })
+  callback(gameWallet)
 }

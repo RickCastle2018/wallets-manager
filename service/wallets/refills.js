@@ -1,7 +1,7 @@
 import axios from 'axios'
 import NodeCache from 'node-cache'
 import coin from '../coin/coin.js'
-import { loadByAddr as loadUserWalletId } from './userwallet.js'
+import UserWallet, { loadByAddr as loadUserWalletId } from './userwallet.js'
 import logger from '../utils/logger.js'
 
 export const requestedTransactions = new NodeCache({
@@ -9,14 +9,17 @@ export const requestedTransactions = new NodeCache({
   deleteOnExpire: false
 })
 
-export function listenRefills () {
+export async function listenRefills () {
+  const users = await UserWallet.find({})
+
   // TODO: Listen only for our user-wallets! Filter
   const options = {
     filter: {
-      value: []
+      address: users
     },
     fromBlock: 0
   }
+  // coin.getPastEvents
   coin.events.Transfer(options)
     .on('data', (t) => {
       loadUserWalletId(t.returnValues.to, (found, userWalletId) => {

@@ -141,6 +141,7 @@ Get user data: balance and blockchain address.
 R:
 
 {   
+	id: int,
     balance: {
         bnb: wei,
         oglc: wei

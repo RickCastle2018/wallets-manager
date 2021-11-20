@@ -3,8 +3,9 @@ import coin, { transfer as transferCoin } from '../coin/coin.js'
 import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import exchange from '../coin/exchange.js' // also, used for OGLC commisions
-import initialRefill from './initialrefill.js'
 import comissionExchange from './comissionexchange.js'
+import BigNumber from 'bignumber.js'
+import { load as loadGameWallet } from './gamewallet.js'
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -23,7 +24,7 @@ userWalletSchema.methods.getBalance = function (callback) {
   })
 }
 userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientAddress, callback) {
-  initialRefill(this.idInGame, (err) => {
+  this.activate(err => {
     if (err) return callback(err)
 
     let transfer = transferCoin
@@ -46,8 +47,57 @@ userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, callb
       callback(err)
     })
 }
-userWalletSchema.methods.getTestCoin = function (amount) {
-  // TODO
+userWalletSchema.methods.activate = function (callback) {
+  loadGameWallet((gW) => {
+    this.getBalance((err, balance) => {
+      if (err) return callback(err)
+
+      if (web3.utils.fromWei(balance.bnb) < 0.001) {
+        const bnbBalance = new BigNumber(web3.utils.fromWei(balance.bnb))
+        let sendAmount = bnbBalance.minus(0.001)
+
+        if (sendAmount.isNegative || sendAmount.toString === 0) {
+          sendAmount = 0.001
+        }
+
+        // НЕ ОТСЫЛАТЬ, ЕСЛИ МЕНЬШЕ, ЧЕМ КОМИССИЯ!
+
+        transferBNB('initialRefill' + this.idInGame, gW, this.address, web3.utils.toWei(sendAmount.toString()),
+          (err, tx) => {
+            if (err) return callback(err)
+
+            tx.execute((err) => {
+              if (err) return callback(err)
+              return callback()
+            })
+          })
+      } else {
+        return callback()
+      }
+    })
+  })
+}
+userWalletSchema.methods.buy = function (txId, currency, amount, callback) {
+  // TODO: reserved for NFTs
+  // ДОКИ
+  // loadGameWallet((gW) => {
+  //   this.activate((err) => {
+  //     if (err) return callback(err)
+  //
+  //     let transfer = transferCoin
+  //     if (currency === 'bnb') transfer = transferBNB
+  //
+  //     transfer(txId, this, gW.address, amount,
+  //       (err, tx) => {
+  //         if (err) return callback(err)
+  //
+  //         comissionExchange(tx, this, (err) => {
+  //           if (err) return callback(err)
+  //           return callback(null, tx.data)
+  //         })
+  //       })
+  //   })
+  // })
 }
 const UserWallet = mongoose.model('UserWallet', userWalletSchema)
 export default UserWallet

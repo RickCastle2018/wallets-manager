@@ -3,8 +3,9 @@ import express from 'express'
 
 // import { listenRefills } from './wallets/refills.js'
 import logger from './utils/logger.js'
+import { init as initGameWallet } from './wallets/gamewallet.js'
 
-import * as gw from './api/gamewallet.js'
+import * as gw from './api/gamewallets.js'
 import * as uw from './api/userwallets.js'
 import * as tx from './api/transactions.js'
 
@@ -17,7 +18,9 @@ const conn = mongoose.connection
 conn.on('error', err => {
   logger.error(err)
 })
-conn.once('open', () => {
+conn.once('open', async () => {
+  // initializing...
+  initGameWallet()
   // listenRefills()
 
   const app = express()

@@ -9,7 +9,6 @@ export default function comissionExchange (tx, uW, callback) {
 
     exchange([tx.id + 'c', tx.id + 'b'], uW, coinAmount.toString(), 'oglc',
       (err) => {
-        console.log(err)
         return callback(err)
       })
   })

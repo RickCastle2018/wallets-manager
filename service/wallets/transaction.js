@@ -4,6 +4,7 @@ import axios from 'axios'
 import Common from '@ethereumjs/common'
 import web3 from '../blockchain/web3.js'
 import { requestedTransactions } from './refills.js'
+import logger from '../utils/logger.js'
 
 export const txStorage = new NodeCache({
   stdTTL: 300,
@@ -44,7 +45,6 @@ export default class Tx {
     return this
   }
 
-  // TODO: only if needed ADD PARAM TO JSON
   enqueue (extra) {
     this.data = extra
     txStorage.set(this.id, this)
@@ -109,6 +109,8 @@ export default class Tx {
             method: 'post',
             url: process.env.WEBHOOKS_LISTENER,
             data: webhook
+          }).catch(err => {
+            logger.error(err)
           })
         })
     })

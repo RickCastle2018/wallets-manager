@@ -40,6 +40,7 @@ export function get (req, res) {
   req.userWallet.getBalance((err, b) => {
     if (err) return res.status(500).send(err.message)
     res.send({
+      id: req.userWallet.idInGame,
       address: req.userWallet.address,
       balance: b
     })
@@ -70,3 +71,9 @@ export function exchange (req, res) {
     res.status(200).send()
   })
 }
+
+// export function buy (req, res) {
+//   if (!req.body.currency) return res.status(500).send('no currency provided')
+//
+//   req.userWallet.buy
+// }
