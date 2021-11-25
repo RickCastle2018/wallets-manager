@@ -9,50 +9,61 @@ export const requestedTransactions = new NodeCache({
   deleteOnExpire: false
 })
 
-export async function listenRefills () {
-  const users = await UserWallet.find({})
+export let usersAddrs
+async function init () {
+  const users = await UserWallet.find({}, 'address -_id')
+  usersAddrs = []
+  users.forEach(u => {
+    usersAddrs.push(u.address)
+  })
+}
 
-  // TODO: Listen only for our user-wallets! Filter
+export async function listenRefills () {
+  await init()
+
   const options = {
     filter: {
-      address: users
+      to: usersAddrs
     },
-    fromBlock: 0
+    fromBlock: 'latest'
   }
-  // coin.getPastEvents
-  coin.events.Transfer(options)
-    .on('data', (t) => {
-      loadUserWalletId(t.returnValues.to, (found, userWalletId) => {
-        coin.methods.balanceOf(t.returnValues.to, (err, b) => {
-          if (err) return logger.error(err)
 
-          const webhook = {
-            transaction_id: 0,
-            type: 'refill',
-            successful: true,
-            user: {
-              id: userWalletId,
-              balance: b
+  function processEvent (e) {
+    if (requestedTransactions.get(e.transactionHash) === undefined) {
+      loadUserWalletId(e.returnValues.to, (err, uW) => {
+        if (err) logger.error(err)
+        if (uW) {
+          uW.getBalance(b => {
+            const webhook = {
+              transaction_id: 0,
+              type: 'external',
+              from: e.returnValues.from,
+              to: {
+                id: uW.idInGame,
+                balance: b,
+                address: uW.address
+              }
             }
-          }
 
-          // TODO: rewrite for NodeCache
-          if (!requestedTransactions.includes(t.transactionHash) && found) {
             axios({
               method: 'post',
               url: process.env.WEBHOOKS_LISTENER,
               data: webhook
+            }).catch(err => {
+              logger.error(err)
             })
-          }
-
-          const txli = requestedTransactions.indexOf(t.H)
-          if (txli !== -1) {
-            requestedTransactions.split(txli, 1)
-          }
-        })
+          })
+        }
       })
-    })
-    .on('error', (err) => {
-      logger.error(err)
-    })
+    }
+  }
+
+  setInterval(() => {
+    coin.getPastEvents('Transfer', options,
+      (err, events) => {
+        if (err) return logger.error(err)
+        // TODO: test this all console.log(events)
+        events.forEach(e => processEvent)
+      })
+  }, 3500) // 3.5 seconds
 }

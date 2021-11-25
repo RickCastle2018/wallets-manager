@@ -4,7 +4,7 @@ const { createLogger, transports, format } = winston
 const logger = createLogger({
   transports: [
     new transports.Console(),
-    new transports.File({ filename: '../service.log' })
+    new transports.File({ filename: 'service.log' })
   ],
   format: format.combine(
     format.timestamp({
@@ -16,4 +16,4 @@ const logger = createLogger({
 export default logger
 
 logger.exceptions.handle(new transports.Console(),
-  new transports.File({ filename: '../exceptions.log' }))
+  new transports.File({ filename: 'exceptions.log' }))

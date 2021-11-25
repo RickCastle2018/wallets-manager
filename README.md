@@ -1,7 +1,7 @@
 
 # wallets-manager
 
-**Status:** Everything with our coin and it's exchange (commision system) almost ready. Getting ready for NFTs, fighting bugs.
+**Status:** Everything with our coin and it's exchange (commision system) is ready.
 
 Start the service:
 
@@ -211,7 +211,9 @@ Q:
 }
 ```
 
-### nfts
+<!--
+
+ ### nfts
 
 **Nothing implemented yet!** This is a draft, and none of the methods listed below works.
 
@@ -263,18 +265,18 @@ Q:
 }
 ```
 
+ -->
+
 ### Webhooks
 
 wallets-manager sends webhook to game when requested transaction processed or user-wallet was refilled. So game should listen POST requests, URL of this listener should be passed in .env file.
 
-**Notice:** it works only for game-requested transactions so webhook won't be sent when user refilled his wallet for ex. And this will be the case until we set up our blockchain nodes with websockets.
-
-Webhook JSON:
+Internal webhook JSON (transactions, requested by game):
 
 ```js
 {   
     transaction_id: int,
-    type: string, // internal/external
+    type: 'internal',
     successful: bool,
     error: string, // returned only when unsuccessful
     gasPaid: string, // gas
@@ -283,9 +285,20 @@ Webhook JSON:
 }
 ```
 
+External webhooks JSON (**only COIN refills from outside**)
+
+```js
+{   
+    transaction_id: 0,
+    type: 'external',
+    from: string, // address
+    to: object // see GET /user-wallets/{id}
+}
+```
+
 ### Backups
 
-You know, without backups you can loose everything. So, see `/db/backup.sh` and `/db/restore.sh`. `backup.sh` should be set in CRON.
+You know, without backups you can loose everything. So, see `/db/backup.sh` and `/db/restore.sh`. `backup.sh` should be set in CRON. Run instructions are provided in code.
 
 ### Logs
 

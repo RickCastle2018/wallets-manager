@@ -8,15 +8,18 @@ const bnbRate = parseInt(process.env.BNB_PRICE)
 const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)
 
 export default function exchange (txIds, user, amountWei, currencyFrom, callback) {
-  let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
-  bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
+  loadGameWallet((gW) => {
+    // gW.getBalance(b => {
+    // TODO: check limits
 
-  switch (currencyFrom) {
-    case 'bnb': {
-      const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).toString())
-      const bnbToTake = web3.utils.toWei(bigAmount.toString())
+    let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
+    bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
 
-      loadGameWallet((gW) => {
+    switch (currencyFrom) {
+      case 'bnb': {
+        const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).toString())
+        const bnbToTake = web3.utils.toWei(bigAmount.toString())
+
         transferCoin(
           txIds[0],
           gW,
@@ -39,14 +42,12 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
             )
           }
         )
-      })
-      break
-    }
-    case 'oglc': {
-      const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).toString())
-      const coinToTake = web3.utils.toWei(bigAmount.toString())
+        break
+      }
+      case 'oglc': {
+        const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).toString())
+        const coinToTake = web3.utils.toWei(bigAmount.toString())
 
-      loadGameWallet((gW) => {
         transferCoin(
           txIds[0],
           user,
@@ -69,9 +70,10 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
             )
           }
         )
-      })
 
-      break
+        break
+      }
     }
-  }
+    // })
+  })
 }

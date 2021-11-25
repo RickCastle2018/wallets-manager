@@ -1,4 +1,5 @@
-# usage: sudo sh backup.sh {db-name}
+#!/usr/bin/bash
+# usage: sudo ./backup.sh {db-name}
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BACKUP_DIR="$SCRIPT_DIR/backups"

@@ -52,13 +52,7 @@ function start (webhooks) {
   const handles = JSON.parse(readFileSync('./' + filename, 'utf8'))
   console.log('Requests to test: ', handles.length)
 
-  if (webhooks) {
-    let webhooksCount = 0
-    handles.forEach(handle => {
-      if ('data' in handle) webhooksCount++
-    })
-    console.log(webhooksCount, ' general webhooks should be received. Check internal exchange (IDc and IDb) webhooks')
-  }
+  if (webhooks) console.log('Check webhooks, also.')
 
   test(handles, 0) // stunning recursive function!
 }

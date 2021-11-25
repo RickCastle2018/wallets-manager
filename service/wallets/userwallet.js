@@ -6,6 +6,7 @@ import exchange from '../coin/exchange.js' // also, used for OGLC commisions
 import comissionExchange from './comissionexchange.js'
 import BigNumber from 'bignumber.js'
 import { load as loadGameWallet } from './gamewallet.js'
+import { usersAddrs } from './refills.js'
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -54,13 +55,14 @@ userWalletSchema.methods.activate = function (callback) {
 
       if (web3.utils.fromWei(balance.bnb) < 0.001) {
         const bnbBalance = new BigNumber(web3.utils.fromWei(balance.bnb))
-        let sendAmount = bnbBalance.minus(0.001)
 
+        // TODO: logic bug
+        let sendAmount = bnbBalance.minus(0.001)
         if (sendAmount.isNegative || sendAmount.toString === 0) {
           sendAmount = 0.001
         }
 
-        // НЕ ОТСЫЛАТЬ, ЕСЛИ МЕНЬШЕ, ЧЕМ КОМИССИЯ!
+        // НЕ ОТСЫЛАТЬ, ЕСЛИ МЕНЬШЕ, ЧЕМ КОМИССИЯ! СПРОЕКТИРОВАТЬ ВСЕ
 
         transferBNB('initialRefill' + this.idInGame, gW, this.address, web3.utils.toWei(sendAmount.toString()),
           (err, tx) => {
@@ -76,28 +78,6 @@ userWalletSchema.methods.activate = function (callback) {
       }
     })
   })
-}
-userWalletSchema.methods.buy = function (txId, currency, amount, callback) {
-  // TODO: reserved for NFTs
-  // ДОКИ
-  // loadGameWallet((gW) => {
-  //   this.activate((err) => {
-  //     if (err) return callback(err)
-  //
-  //     let transfer = transferCoin
-  //     if (currency === 'bnb') transfer = transferBNB
-  //
-  //     transfer(txId, this, gW.address, amount,
-  //       (err, tx) => {
-  //         if (err) return callback(err)
-  //
-  //         comissionExchange(tx, this, (err) => {
-  //           if (err) return callback(err)
-  //           return callback(null, tx.data)
-  //         })
-  //       })
-  //   })
-  // })
 }
 const UserWallet = mongoose.model('UserWallet', userWalletSchema)
 export default UserWallet
@@ -118,6 +98,7 @@ export function create (userIdInGame, callback) {
       })
       userWallet.save().then(
         (uW) => {
+          usersAddrs.push(uW.address)
           callback(null, uW)
         }
       )
