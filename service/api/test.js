@@ -3,6 +3,7 @@
 // `sudo node test.js`, check - test passed if there no errs (and webhooks received)
 // `sudo` needed to test webhooks (expose 80 port)
 // if you want to see service responces - `(sudo) node test.js full`
+// if you want to run another testcases - `(sudo) node test.js full/short filename.json`
 
 import { readFileSync } from 'fs'
 import express from 'express'

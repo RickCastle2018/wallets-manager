@@ -42,7 +42,8 @@ export async function listenRefills () {
                 id: uW.idInGame,
                 balance: b,
                 address: uW.address
-              }
+              },
+              amount: e.returnValues.amount
             }
 
             axios({
@@ -58,6 +59,7 @@ export async function listenRefills () {
     }
   }
 
+  // TODO: connect services with websockets & write websockets listener
   setInterval(() => {
     coin.getPastEvents('Transfer', options,
       (err, events) => {

@@ -30,7 +30,7 @@ In examples you can find unusual type *Wei*. In blockchain all money amounts sho
 
 ### transactions (!)
 
-When game makes POST request, which supposed to move any funds (oglc/bnb/nft), transaction queue comes into play. 
+When game makes POST request, which supposed to move any funds (oglc/bnb/nft), transaction queue comes into play.
 
 For example, game does `POST /game-wallet/withdraw`: service will return *calculations* for transaction (fees, bnb-to-move, etc.) and transaction will be prepared and waiting for execution (POST /transactions).
 
@@ -46,7 +46,7 @@ R:
 
 {
 	from: string, // address
-	to: string, // address	
+	to: string, // address
 	currency: string, // oglc/bnb/nft
 	amount: string, // wei if amount / int if nft
 	fee: string // gas
@@ -96,7 +96,7 @@ Q:
     currency: string // oglc or bnb
 }
 
-R: 
+R:
 
 {
 	transaction
@@ -177,7 +177,7 @@ Q:
     currency: string // bnb or oglc
 }
 
-R: 
+R:
 
 {
 	transaction // as GET /transactions
@@ -240,11 +240,11 @@ Get token's JSON.
   image: string, // url (ex. ogle.money/nft/123.jpg),
   properties: {
   	owner: int, // idInGame
-    type: string, // ogle/clanowner/hogle 
+    type: string, // ogle/clanowner/hogle
     collection: string,
     rarity: string,
     value: string, // wei, bnb
-    posessions: [] of int, // nft ids 
+    posessions: [] of int, // nft ids
     // and more, we haven't standartized it yet
   }
 }
@@ -254,7 +254,7 @@ Get token's JSON.
 #### POST /nfts/buy
 
 Mint new NFT and send to user.
- 
+
 ```js
 Q:
 
@@ -292,14 +292,15 @@ External webhooks JSON (**only COIN refills from outside**)
     transaction_id: 0,
     type: 'external',
     from: string, // address
-    to: object // see GET /user-wallets/{id}
+    to: object, // see GET /user-wallets/{id}
+    amount: string
 }
 ```
 
 ### Backups
 
-You know, without backups you can loose everything. So, see `/db/backup.sh` and `/db/restore.sh`. `backup.sh` should be set in CRON. Run instructions are provided in code.
+You know, without backups you can loose everything. So, see `/db/backup.sh` and `/db/restore.sh`. `backup.sh` should be set in CRON. Setup instructions are provided right in sh code.
 
 ### Logs
 
-See `service/error.log` file and `server.js` for implementation. In future we'll have monitoring system (alarms, graphana, etc.).
+Are written to `service/exceptions.log` and `service/service.log` files. Implemented in `service/utils/logger.js`. In future we'll have monitoring system (alarms, graphana, etc.).

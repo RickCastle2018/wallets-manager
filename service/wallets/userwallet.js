@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
-import exchange from '../coin/exchange.js' // also, used for OGLC commisions
+import exchange from '../coin/exchange.js'
 import comissionExchange from './comissionexchange.js'
 import BigNumber from 'bignumber.js'
 import { load as loadGameWallet } from './gamewallet.js'
@@ -56,23 +56,30 @@ userWalletSchema.methods.activate = function (callback) {
       if (web3.utils.fromWei(balance.bnb) < 0.001) {
         const bnbBalance = new BigNumber(web3.utils.fromWei(balance.bnb))
 
-        // TODO: logic bug
         let sendAmount = bnbBalance.minus(0.001)
-        if (sendAmount.isNegative || sendAmount.toString === 0) {
-          sendAmount = 0.001
-        }
+        if (sendAmount.isNegative) {
+          sendAmount = web3.utils.toWei(sendAmount.multipliedBy(-1).toString())
 
-        // НЕ ОТСЫЛАТЬ, ЕСЛИ МЕНЬШЕ, ЧЕМ КОМИССИЯ! СПРОЕКТИРОВАТЬ ВСЕ
-
-        transferBNB('initialRefill' + this.idInGame, gW, this.address, web3.utils.toWei(sendAmount.toString()),
-          (err, tx) => {
-            if (err) return callback(err)
-
-            tx.execute((err) => {
+          transferBNB('initialRefill' + this.idInGame, gW, this.address, sendAmount,
+            async (err, tx) => {
               if (err) return callback(err)
-              return callback()
+
+              const gasPrice = await web3.eth.getGasPrice()
+              const bnbFee = tx.data.fee * web3.utils.fromWei(gasPrice, 'gwei') * 1.01
+
+              if (web3.utils.toWei(bnbFee.toString(), 'gwei') <= sendAmount) {
+                tx.execute((err) => {
+                  if (err) return callback(err)
+                  return callback()
+                })
+              } else {
+                tx.cancel()
+                return callback()
+              }
             })
-          })
+        } else {
+          return callback()
+        }
       } else {
         return callback()
       }
