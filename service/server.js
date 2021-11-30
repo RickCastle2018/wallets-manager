@@ -45,13 +45,17 @@ conn.once('open', async () => {
   // user-wallets
   app.put('/user-wallets/:idInGame', uw.create)
   app.use('/user-wallets/:idInGame*', uw.middleware)
-  // TODO: app.post('/user-wallets/:idInGame/import', uw.import)
-  // app.get(/user-wallets/:idInGame/export)
+  app.post('/user-wallets/:idInGame/import', uw.importPK)
   app.get('/user-wallets/:idInGame', uw.get)
+  app.post('/user-wallets/:idInGame/export', uw.exportPK)
   app.post('/user-wallets/:idInGame/withdraw', uw.withdraw)
   // exchange
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
+
+  if (process.env.NODE_ENV == 'development') {
+    // mintTestToken
+  }
 
   // TODO: nfts
   // app.get('/nfts/:id', nft.get)

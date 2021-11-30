@@ -14,10 +14,11 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
 
       let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
       bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
+      const ourFee = bigAmount.multipliedBy(exchangeFee)
 
       switch (currencyFrom) {
         case 'bnb': {
-          const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).toString())
+          const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).minus(ourFee).toString())
           const bnbToTake = web3.utils.toWei(bigAmount.toString())
 
           transferCoin(
@@ -45,7 +46,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
           break
         }
         case 'oglc': {
-          const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).toString())
+          const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).minus(ourFee).toString())
           const coinToTake = web3.utils.toWei(bigAmount.toString())
 
           transferCoin(

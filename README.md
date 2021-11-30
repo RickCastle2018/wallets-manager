@@ -133,7 +133,7 @@ user-wallet (`/user-wallets/{user-id}/{method}`) -- a wallet which every user ha
 
 **Notice:** `address` can be used intead of `user_id` in any /user-wallets method!
 
-#### GET /userwallets/{user_id OR address}
+#### GET /userwallets/{user_id OR address OR privateKey}
 
 Get user data: balance and blockchain address.
 
@@ -163,6 +163,18 @@ R:
 }
 ```
 
+#### POST /user-wallets/{user_id}/
+
+Create new user-wallet with the following `{user_id}`. Returns blockchain address.
+
+```js
+R:
+
+{   
+    address: string,
+    privateKey: string
+}
+```
 
 #### POST /user-wallets/{user_id}/withdraw
 

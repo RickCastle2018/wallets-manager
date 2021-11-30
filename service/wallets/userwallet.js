@@ -1,10 +1,14 @@
 import mongoose from 'mongoose'
-import coin, { transfer as transferCoin } from '../coin/coin.js'
+import axios from 'axios'
+import BigNumber from 'bignumber.js'
+
+import logger from '../utils/logger.js'
 import web3 from '../blockchain/web3.js'
+import commissionExchange from './commissionexchange.js'
+
+import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import exchange from '../coin/exchange.js'
-import comissionExchange from './comissionexchange.js'
-import BigNumber from 'bignumber.js'
 import { load as loadGameWallet } from './gamewallet.js'
 import { usersAddrs } from './refills.js'
 
@@ -35,7 +39,9 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
       (err, tx) => {
         if (err) return callback(err)
 
-        comissionExchange(tx, this, (err) => {
+        if (transfer === transferBNB) return callback(null, tx.data)
+
+        commissionExchange(tx, this, (err) => {
           if (err) return callback(err)
           callback(null, tx.data)
         })
@@ -47,6 +53,27 @@ userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, callb
     (err) => {
       callback(err)
     })
+}
+userWalletSchema.methods.import = function (privateKey, callback) {
+  const account = web3.eth.accounts.privateKeyToAccount(privateKey)
+  this.privateKey = privateKey
+  this.address = account.address
+  this.save()
+    .then(s => { callback() })
+    .catch(e => callback)
+}
+userWalletSchema.methods.export = function (txId) {
+  axios({
+    method: 'post',
+    url: process.env.WEBHOOKS_LISTENER,
+    data: {
+      transaction_id: txId,
+      type: 'export',
+      privateKey: this.privateKey
+    }
+  }).catch(err => {
+    logger.error(err)
+  })
 }
 userWalletSchema.methods.activate = function (callback) {
   loadGameWallet((gW) => {
@@ -126,6 +153,14 @@ export function load (userIdInGame, callback) {
 export function loadByAddr (addr, callback) {
   UserWallet.findOne({
     address: addr
+  }, (err, uW) => {
+    callback(err, uW)
+  })
+}
+
+export function loadByPK (pK, callback) {
+  UserWallet.findOne({
+    privateKey: pK
   }, (err, uW) => {
     callback(err, uW)
   })

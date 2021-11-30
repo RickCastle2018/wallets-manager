@@ -23,6 +23,18 @@
  },
  {
    "method": "post",
+   "url": "http://127.0.0.1:2311/user-wallets/1/export",
+   "data": {
+     "transaction_id": 20
+   }
+ },
+ {
+   "method": "post",
+   "url": "http://127.0.0.1:2311/user-wallets/1/import",
+   "data": {}
+ },
+ {
+   "method": "post",
    "url": "http://127.0.0.1:2311/transactions/1"
  },
  {

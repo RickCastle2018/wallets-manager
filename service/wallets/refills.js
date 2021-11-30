@@ -60,6 +60,7 @@ export async function listenRefills () {
   }
 
   // TODO: connect services with websockets & write websockets listener
+  // TODO: no websockets
   setInterval(() => {
     coin.getPastEvents('Transfer', options,
       (err, events) => {

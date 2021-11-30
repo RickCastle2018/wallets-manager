@@ -3,7 +3,7 @@ import web3 from '../blockchain/web3.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadUserWallet } from './userwallet.js'
-import comissionExchange from './comissionexchange.js'
+import commissionExchange from './commissionexchange.js'
 import logger from '../utils/logger.js'
 
 const gameWalletSchema = new mongoose.Schema({
@@ -58,7 +58,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           (err, tx) => {
             if (err) return callback(err)
 
-            comissionExchange(tx, uW, (err) => {
+            commissionExchange(tx, uW, (err) => {
               if (err) return callback(err)
               return callback(null, tx.data)
             })
