@@ -30,7 +30,7 @@ conn.once('open', async () => {
   }))
   app.use(express.json())
 
-  // trasactions
+  // transactions
   app.use('/transactions/:txId*', tx.middleware)
   app.get('/transactions/:txId', tx.get)
   app.delete('/transactions/:txId', tx.cancel)
@@ -53,7 +53,7 @@ conn.once('open', async () => {
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
 
-  if (process.env.NODE_ENV == 'development') {
+  if (process.env.NODE_ENV === 'development') {
     // mintTestToken
   }
 

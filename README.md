@@ -49,7 +49,16 @@ R:
 	to: string, // address
 	currency: string, // oglc/bnb/nft
 	amount: string, // wei if amount / int if nft
-	fee: string // gas
+	fee: {
+		gas: string,
+		bnb: string, // wei
+		oglc: string, // also wei
+		usdt: string // not implemented for now
+	},
+	executed: bool,
+	result: {
+		// see webhooks section
+	}
 }
 ```
 
@@ -163,15 +172,34 @@ R:
 }
 ```
 
-#### POST /user-wallets/{user_id}/
+#### POST /user-wallets/{user_id}/import
 
-Create new user-wallet with the following `{user_id}`. Returns blockchain address.
+Change privateKey and inheritely address of wallet.
 
 ```js
-R:
+Q:
 
 {   
-    address: string,
+    privateKey: string
+}
+```
+
+#### POST /user-wallets/{user_id}/export
+
+Game will get 200 OK responce and then webhook in which private key will be provided. Webhook is for security purposes. 
+
+```js
+Q:
+
+{
+	transaction_id: int
+}
+
+Webhook:
+
+{   
+    transaction_id: int,
+    type: 'export',
     privateKey: string
 }
 ```
@@ -298,7 +326,7 @@ Internal webhook JSON (transactions, requested by game):
 }
 ```
 
-External webhooks JSON (**only COIN refills from outside**)
+External webhooks JSON (**only coin refills from outside**). Soon for NFT. For now not guaranteed to work.
 
 ```js
 {   
@@ -316,4 +344,4 @@ You know, without backups you can loose everything. So, see `/db/backup.sh` and 
 
 ### Logs
 
-Are written to `service/exceptions.log` and `service/service.log` files. Implemented in `service/utils/logger.js`. In future we'll have monitoring system (alarms, graphana, etc.).
+Are written to `service/exceptions.log` and `service/service.log` files. Implemented in `service/utils/logger.js`. In future we'll have monitoring system (alarms, grafana, etc.).

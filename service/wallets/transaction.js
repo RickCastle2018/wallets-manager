@@ -66,6 +66,12 @@ export default class Tx {
       const serializedTrans = signedTx.serialize()
       this.raw = '0x' + serializedTrans.toString('hex')
 
+      function executedState (tx, webhook) {
+        tx.data.executed = true
+        tx.data.result = webhook
+        tx.enqueue(tx.data)
+      }
+
       web3.eth.sendSignedTransaction(this.raw)
         .once('transactionHash', function (hash) {
           requestedTransactions.set(hash, this.id)
@@ -81,6 +87,8 @@ export default class Tx {
             from: this.data.from ? this.data.from : '',
             to: this.data.to ? this.data.to : ''
           }
+
+          executedState(this, webhook)
 
           axios({
             method: 'post',
@@ -104,6 +112,8 @@ export default class Tx {
             successful: false,
             error: error.message
           }
+
+          executedState(this, webhook)
 
           axios({
             method: 'post',

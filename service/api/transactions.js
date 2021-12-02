@@ -20,6 +20,12 @@ export function cancel (req, res) {
 
 export function proceed (req, res) {
   req.tx.execute()
-  req.tx.cancel()
+
+  // let oldData = req.tx.data
+  // req.tx.enqueue({
+  //   oldData
+  //
+  // })
+
   res.status(200).send()
 }
