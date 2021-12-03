@@ -7,10 +7,14 @@ import { load as loadGameWallet } from '../wallets/gamewallet.js'
 const bnbRate = parseInt(process.env.BNB_PRICE)
 const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)
 
-export default function exchange (txIds, user, amountWei, currencyFrom, callback) {
+function checkLimits (gameWallet, userWallet) {
+
+}
+
+export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
   loadGameWallet((gW) => {
     gW.getBalance(b => {
-      // TODO: check limits
+      checkLimits(gW, user)
 
       let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
       bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
@@ -27,8 +31,8 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
             user.address,
             coinsToSend,
             (err, tx) => {
-              if (err) return callback(err)
-              tx.execute()
+              if (err) return cb(err)
+              // tx.execute()
 
               transferBNB(
                 txIds[1],
@@ -36,9 +40,9 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
                 gW.address,
                 bnbToTake,
                 (err, tx) => {
-                  if (err) return callback(err)
-                  callback()
-                  tx.execute()
+                  if (err) return cb(err)
+                  cb()
+                  // tx.execute()
                 }
               )
             }
@@ -55,8 +59,8 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
             gW.address,
             coinToTake,
             (err, tx) => {
-              if (err) return callback(err)
-              tx.execute()
+              if (err) return cb(err)
+              // tx.execute()
 
               transferBNB(
                 txIds[1],
@@ -64,9 +68,9 @@ export default function exchange (txIds, user, amountWei, currencyFrom, callback
                 user.address,
                 bnbToSend,
                 (err, tx) => {
-                  if (err) return callback(err)
-                  callback()
-                  tx.execute()
+                  if (err) return cb(err)
+                  cb()
+                  // tx.execute()
                 }
               )
             }

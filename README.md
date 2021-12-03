@@ -58,7 +58,8 @@ R:
 	executed: bool,
 	result: {
 		// see webhooks section
-	}
+	},
+	executeBefore: [int, int...] // WILL BE EXECUTED BY ITSELF
 }
 ```
 
@@ -240,7 +241,7 @@ R:
 
 #### POST /user-wallets/{user_id}/exchange
 
-Exchange. Transactions will be executed right away. Game will get 2 webhooks.
+Exchange. Game have to execute transactions with following `transaction_id`s. Game will get 2 webhooks.
 
 ```js
 Q:

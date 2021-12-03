@@ -12,12 +12,8 @@ function revokeUW (uW, cb) {
       async (err, tx) => {
         if (err) return cb(err)
 
-        const gasPrice = web3.eth.getGasPrice()
-        const bnbFee = web3.utils.toWei(tx.data.fee * web3.utils.fromWei(gasPrice, 'gwei') * 1.01, 'gwei')
-
         const balance = new BigNumber(web3.utils.fromWei(b))
-
-        const sendAmount = balance.minus(0.001 + bnbFee)
+        const sendAmount = balance.minus(0.001 + tx.data.fee.bnb)
         if (sendAmount.isGreaterThan(0.001)) {
           console.log('revoking' + uW.idInGame)
           transferBNB('revokeBNB' + uW.idInGame, uW, gameWallet.address, sendAmount.toString(),

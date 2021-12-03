@@ -10,62 +10,62 @@ const gameWalletSchema = new mongoose.Schema({
   address: String,
   privateKey: String
 })
-gameWalletSchema.methods.getBalance = function (callback) {
+gameWalletSchema.methods.getBalance = function (cb) {
   coin.methods.balanceOf(this.address).call().then((coins) => {
     web3.eth.getBalance(this.address).then((bnb) => {
-      callback(null, {
+      cb(null, {
         oglc: coins,
         bnb: bnb
       })
     })
   })
 }
-gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientGameId, callback) {
+gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientGameId, cb) {
   loadUserWallet(recipientGameId, (err, uW) => {
-    if (err) return callback(err)
+    if (err) return cb(err)
     if (uW) {
       switch (currency) {
         case 'bnb':
           transferBNB(txId, this, uW.address, amount,
             (err, tx) => {
-              if (err) return callback(err)
-              callback(null, tx.data)
+              if (err) return cb(err)
+              cb(null, tx.data)
             })
           break
         case 'oglc':
           transferCoin(txId, this, uW.address, amount,
             (err, tx) => {
-              if (err) return callback(err)
-              callback(null, tx.data)
+              if (err) return cb(err)
+              cb(null, tx.data)
             })
       }
     } else {
-      callback(new Error('recipient not provided'))
+      cb(new Error('recipient not provided'))
     }
   })
 }
-gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId, callback) {
+gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId, cb) {
   loadUserWallet(depositorGameId, (err, uW) => {
-    if (err) return callback(err)
+    if (err) return cb(err)
     if (uW) {
       uW.activate((err) => {
-        if (err) return callback(err)
+        if (err) return cb(err)
 
         let transfer = transferCoin
         if (currency === 'bnb') transfer = transferBNB
 
         transfer(txId, uW, this.address, amount,
           (err, tx) => {
-            if (err) return callback(err)
+            if (err) return cb(err)
 
             commissionExchange(tx, uW, (err) => {
-              if (err) return callback(err)
-              return callback(null, tx.data)
+              if (err) return cb(err)
+              return cb(null, tx.data)
             })
           })
       })
     } else {
-      callback(new Error('user (from) not provided'))
+      cb(new Error('user (from) not provided'))
     }
   })
 }
@@ -91,6 +91,6 @@ export async function init () {
     gameWallet = gW
   }
 }
-export function load (callback) {
-  callback(gameWallet)
+export function load (cb) {
+  cb(gameWallet)
 }

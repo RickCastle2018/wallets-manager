@@ -1,19 +1,19 @@
 import { readFileSync } from 'fs'
 import Tx from '../wallets/transaction.js'
 import web3 from '../blockchain/web3.js'
-import gasToBNB from '../utils/gasToBNB.js'
+import gasToBNB from '../utils/gastobnb.js'
 
 const abi = JSON.parse(readFileSync('./coin/contracts/oglc.json', 'utf8'))
 const coin = new web3.eth.Contract(abi, process.env.COIN_CONTRACT)
 export default coin
 
-export function transfer (txId, fromUser, toAddress, amount, callback) {
+export function transfer (txId, fromUser, toAddress, amount, cb) {
   web3.eth.getGasPrice().then((gasPrice) => {
     coin.methods.transfer(toAddress, new web3.utils.BN(amount)).estimateGas({
       from: fromUser.address
     },
     async (err, estimatedGas) => {
-      if (err) return callback(err)
+      if (err) return cb(err)
 
       const data = coin.methods.transfer(toAddress, new web3.utils.BN(amount)).encodeABI()
       const txObject = {
@@ -27,6 +27,8 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
       }
 
       const tx = new Tx(txId, fromUser.privateKey, txObject)
+
+      const bnbGas = await gasToBNB(estimatedGas, gasPrice)
       tx.enqueue({
         from: fromUser.address,
         to: toAddress,
@@ -34,13 +36,13 @@ export function transfer (txId, fromUser, toAddress, amount, callback) {
         amount: amount,
         fee: {
           gas: estimatedGas,
-          bnb: await gasToBNB(estimatedGas),
-          oglc: await gasToBNB(estimatedGas) * process.env.BNB_PRICE
+          bnb: bnbGas,
+          oglc: bnbGas * process.env.BNB_PRICE
         },
         executed: false
       })
 
-      callback(null, tx)
+      cb(null, tx)
     })
   })
 }

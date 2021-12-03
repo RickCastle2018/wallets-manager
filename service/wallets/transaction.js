@@ -16,16 +16,16 @@ export const nonceCache = new NodeCache({
   deleteOnExpire: false
 })
 
-function getAndIncrementNonce (address, callback) {
+function getAndIncrementNonce (address, cb) {
   const nonce = nonceCache.take(address)
   if (nonce !== undefined) {
-    callback(parseInt(nonce))
+    cb(parseInt(nonce))
     nonceCache.set(address, (parseInt(nonce) + 1).toString())
     return
   }
   web3.eth.getTransactionCount(address, 'pending')
     .then((txCount) => {
-      callback(parseInt(txCount))
+      cb(parseInt(txCount))
       nonceCache.set(address, (parseInt(txCount) + 1).toString())
     })
 }
@@ -54,7 +54,7 @@ export default class Tx {
     txStorage.del(this.id)
   }
 
-  execute (callback) {
+  execute (cb) {
     getAndIncrementNonce(this.txObject.from, (txCount) => {
       this.txObject.nonce = txCount
 
@@ -72,12 +72,29 @@ export default class Tx {
         tx.enqueue(tx.data)
       }
 
+      function executeBefore (txs, i) {
+        if (txs[i] === undefined) return
+
+        const tx = txStorage.get(txs[i])
+        if (tx === undefined) {
+          const err = 'executeBefore tx not found!'
+          logger.error(err)
+          cb(new Error(err))
+        } else {
+          tx.execute(err => {
+            if (err) return cb(err)
+            executeBefore(txs, i + 1)
+          })
+        }
+      }
+      if (this.data.executeBefore) executeBefore(this.data.executeBefore, 0)
+
       web3.eth.sendSignedTransaction(this.raw)
         .once('transactionHash', function (hash) {
           requestedTransactions.set(hash, this.id)
         })
         .once('receipt', (receipt) => {
-          if (callback) callback()
+          if (cb) cb()
 
           const webhook = {
             transaction_id: this.id,
@@ -96,7 +113,7 @@ export default class Tx {
             data: webhook
           })
         }).on('error', (error) => {
-          if (callback) callback(error)
+          if (cb) cb(error)
 
           web3.eth.getTransactionCount(this.txObject.from, 'pending')
             .then((txCount) => {

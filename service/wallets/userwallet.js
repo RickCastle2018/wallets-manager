@@ -18,49 +18,49 @@ const userWalletSchema = new mongoose.Schema({
   address: String,
   privateKey: String
 })
-userWalletSchema.methods.getBalance = function (callback) {
+userWalletSchema.methods.getBalance = function (cb) {
   coin.methods.balanceOf(this.address).call().then((coins) => {
     web3.eth.getBalance(this.address).then((bnb) => {
-      callback(null, {
+      cb(null, {
         oglc: coins,
         bnb: bnb
       })
     })
   })
 }
-userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientAddress, callback) {
+userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientAddress, cb) {
   this.activate(err => {
-    if (err) return callback(err)
+    if (err) return cb(err)
 
     let transfer = transferCoin
     if (currency === 'bnb') transfer = transferBNB
 
     transfer(txId, this, recipientAddress, amount,
       (err, tx) => {
-        if (err) return callback(err)
+        if (err) return cb(err)
 
-        if (transfer === transferBNB) return callback(null, tx.data)
+        if (transfer === transferBNB) return cb(null, tx.data)
 
         commissionExchange(tx, this, (err) => {
-          if (err) return callback(err)
-          callback(null, tx.data)
+          if (err) return cb(err)
+          cb(null, tx.data)
         })
       })
   })
 }
-userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, callback) {
+userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, cb) {
   exchange(txIds, this, amount, currencyFrom,
     (err) => {
-      callback(err)
+      cb(err)
     })
 }
-userWalletSchema.methods.import = function (privateKey, callback) {
+userWalletSchema.methods.import = function (privateKey, cb) {
   const account = web3.eth.accounts.privateKeyToAccount(privateKey)
   this.privateKey = privateKey
   this.address = account.address
   this.save()
-    .then(s => { callback() })
-    .catch(e => callback)
+    .then(s => { cb() })
+    .catch(e => cb)
 }
 userWalletSchema.methods.export = function (txId) {
   axios({
@@ -75,10 +75,10 @@ userWalletSchema.methods.export = function (txId) {
     logger.error(err)
   })
 }
-userWalletSchema.methods.activate = function (callback) {
+userWalletSchema.methods.activate = function (cb) {
   loadGameWallet((gW) => {
     this.getBalance((err, balance) => {
-      if (err) return callback(err)
+      if (err) return cb(err)
 
       if (web3.utils.fromWei(balance.bnb) < 0.001) {
         const bnbBalance = new BigNumber(web3.utils.fromWei(balance.bnb))
@@ -89,26 +89,24 @@ userWalletSchema.methods.activate = function (callback) {
 
           transferBNB('initialRefill' + this.idInGame, gW, this.address, sendAmount,
             async (err, tx) => {
-              if (err) return callback(err)
+              if (err) return cb(err)
 
-              const gasPrice = await web3.eth.getGasPrice()
-              const bnbFee = tx.data.fee * web3.utils.fromWei(gasPrice, 'gwei') * 1.01
-
+              const bnbFee = tx.data.fee.bnb
               if (web3.utils.toWei(bnbFee.toString(), 'gwei') <= sendAmount) {
                 tx.execute((err) => {
-                  if (err) return callback(err)
-                  return callback()
+                  if (err) return cb(err)
+                  return cb()
                 })
               } else {
                 tx.cancel()
-                return callback()
+                return cb()
               }
             })
         } else {
-          return callback()
+          return cb()
         }
       } else {
-        return callback()
+        return cb()
       }
     })
   })
@@ -116,11 +114,11 @@ userWalletSchema.methods.activate = function (callback) {
 const UserWallet = mongoose.model('UserWallet', userWalletSchema)
 export default UserWallet
 
-export function create (userIdInGame, callback) {
+export function create (userIdInGame, cb) {
   UserWallet.findOne({
     idInGame: userIdInGame
   }, (err, uW) => {
-    if (err) callback(err)
+    if (err) cb(err)
 
     if (!uW) {
       const account = web3.eth.accounts.create()
@@ -133,35 +131,35 @@ export function create (userIdInGame, callback) {
       userWallet.save().then(
         (uW) => {
           usersAddrs.push(uW.address)
-          callback(null, uW)
+          cb(null, uW)
         }
       )
     } else {
-      callback(new Error('already exists'))
+      cb(new Error('already exists'))
     }
   })
 }
 
-export function load (userIdInGame, callback) {
+export function load (userIdInGame, cb) {
   UserWallet.findOne({
     idInGame: userIdInGame
   }, (err, uW) => {
-    callback(err, uW)
+    cb(err, uW)
   })
 }
 
-export function loadByAddr (addr, callback) {
+export function loadByAddr (addr, cb) {
   UserWallet.findOne({
     address: addr
   }, (err, uW) => {
-    callback(err, uW)
+    cb(err, uW)
   })
 }
 
-export function loadByPK (pK, callback) {
+export function loadByPK (pK, cb) {
   UserWallet.findOne({
     privateKey: pK
   }, (err, uW) => {
-    callback(err, uW)
+    cb(err, uW)
   })
 }
