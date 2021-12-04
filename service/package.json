@@ -5,7 +5,7 @@
   "description": "Seastate Games Wallets-Manager",
   "main": "server.js",
   "scripts": {
-    "test": "sudo node ./api/test.js",
+    "test": "sudo node ./api/tests/test.js",
     "start": "node server.js"
   },
   "repository": {

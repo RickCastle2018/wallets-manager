@@ -19,14 +19,13 @@ export const nonceCache = new NodeCache({
 function getAndIncrementNonce (address, cb) {
   const nonce = nonceCache.take(address)
   if (nonce !== undefined) {
-    cb(parseInt(nonce))
     nonceCache.set(address, (parseInt(nonce) + 1).toString())
-    return
+    return cb(parseInt(nonce))
   }
   web3.eth.getTransactionCount(address, 'pending')
     .then((txCount) => {
-      cb(parseInt(txCount))
       nonceCache.set(address, (parseInt(txCount) + 1).toString())
+      return cb(parseInt(txCount))
     })
 }
 
@@ -79,10 +78,13 @@ export default class Tx {
         if (tx === undefined) {
           const err = 'executeBefore tx not found!'
           logger.error(err)
-          cb(new Error(err))
+          if (cb) return cb(new Error(err))
         } else {
           tx.execute(err => {
-            if (err) return cb(err)
+            if (err && cb) {
+              logger.error(err)
+              return cb(err)
+            }
             executeBefore(txs, i + 1)
           })
         }

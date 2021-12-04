@@ -20,7 +20,12 @@ If you got an error -- contact maintainer.
 
 ## API
 
-API methods documentation. Access at `127.0.0.1:2311/...` without auth. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
+API methods documentation. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
+
+**Access** at `127.0.0.1:2311/...`. Authorization way (resembles JWT):
+
+1. Game backend gets secret code once per 15 min by special webhook
+2. When game backend makes any request, it shoud have Authorization HTTP header with the following value: Bearer SECRET.SIGNATURE (SIGNATURE -- SECRET, RSA-signed by backend)
 
 Built with REST in mind. So all query examples are JSON which you have to send in POST-data to service. And there's example for each API method: *Q --  Query struct. R -- Response struct*. If there's no *Responce* in example, service will return just 200 HTTP code or 500 error.
 
@@ -141,7 +146,7 @@ user-wallet (`/user-wallets/{user-id}/{method}`) -- a wallet which every user ha
 
 `{user_id}` -- should be the same as user's id in game's database.
 
-**Notice:** `address` can be used intead of `user_id` in any /user-wallets method!
+**Notice:** `address` or `privateKey` can be used intead of `user_id` in each of /user-wallets methods!
 
 #### GET /userwallets/{user_id OR address OR privateKey}
 

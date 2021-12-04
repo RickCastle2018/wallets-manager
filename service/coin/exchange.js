@@ -32,7 +32,6 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
             coinsToSend,
             (err, tx) => {
               if (err) return cb(err)
-              // tx.execute()
 
               transferBNB(
                 txIds[1],
@@ -42,7 +41,6 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
                 (err, tx) => {
                   if (err) return cb(err)
                   cb()
-                  // tx.execute()
                 }
               )
             }
@@ -60,7 +58,6 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
             coinToTake,
             (err, tx) => {
               if (err) return cb(err)
-              // tx.execute()
 
               transferBNB(
                 txIds[1],
@@ -70,7 +67,6 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
                 (err, tx) => {
                   if (err) return cb(err)
                   cb()
-                  // tx.execute()
                 }
               )
             }
