@@ -16,8 +16,8 @@ export function create (req, res) {
 }
 
 export function middleware (req, res, next) {
-  if (web3.utils.isAddress(req.params.idInGame)) {
-    loadUserWalletByAddress(req.params.idInGame, (err, uW) => {
+  if (/^\d+$/.test(req.params.idInGame)) {
+    loadUserWallet(req.params.idInGame, (err, uW) => {
       if (err) return res.status(500).send(err.message)
       if (uW) {
         req.userWallet = uW
@@ -25,8 +25,8 @@ export function middleware (req, res, next) {
       }
       return res.status(404).send('user-wallet not found')
     })
-  } else if (!isNaN(req.params.idInGame)) {
-    loadUserWallet(req.params.idInGame, (err, uW) => {
+  } else if (web3.utils.isAddress(req.params.idInGame)) {
+    loadUserWalletByAddress(req.params.idInGame, (err, uW) => {
       if (err) return res.status(500).send(err.message)
       if (uW) {
         req.userWallet = uW
@@ -44,6 +44,7 @@ export function middleware (req, res, next) {
       return res.status(404).send('user-wallet not found')
     })
   }
+  console.log(5)
 }
 
 export function get (req, res) {
