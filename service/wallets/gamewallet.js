@@ -8,7 +8,8 @@ import logger from '../utils/logger.js'
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
-  privateKey: String
+  privateKey: String,
+  dailyIncome: String
 })
 gameWalletSchema.methods.getBalance = function (cb) {
   coin.methods.balanceOf(this.address).call().then((coins) => {

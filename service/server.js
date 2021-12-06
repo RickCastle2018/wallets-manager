@@ -49,12 +49,18 @@ conn.once('open', async () => {
   app.get('/user-wallets/:idInGame', uw.get)
   app.post('/user-wallets/:idInGame/export', uw.exportPK)
   app.post('/user-wallets/:idInGame/withdraw', uw.withdraw)
+  // TODO: app.post('/user-wallets/:idInGame/reclaim', uw.reclaimCoin)
   // exchange
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
 
-  // TODO: settings && money-management
+  // TODO: settings
   // POST/GET /set/exchangeRate and so on
+
+  // TODO: bank (money management)
+  // GET /bank + POST /bank/withdraw
+
+  // TODO: app.post('/coin/mint', coin.mint)
 
   if (process.env.NODE_ENV === 'development') {
     // mintTestToken

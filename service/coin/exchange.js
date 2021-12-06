@@ -4,10 +4,16 @@ import { transfer as transferBNB } from '../blockchain/bnb.js'
 import { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadGameWallet } from '../wallets/gamewallet.js'
 
+BigNumber.set({
+  DECIMAL_PLACES: 17,
+  EXPONENTIAL_AT: 1e+9
+})
+
 const bnbRate = parseInt(process.env.BNB_PRICE)
 const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)
 
 function checkLimits (gameWallet, userWallet) {
+  // game-wallet checkLimits
 
 }
 

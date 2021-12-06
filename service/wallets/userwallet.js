@@ -12,6 +12,11 @@ import exchange from '../coin/exchange.js'
 import { load as loadGameWallet } from './gamewallet.js'
 import { usersAddrs } from './refills.js'
 
+BigNumber.set({
+  DECIMAL_PLACES: 17,
+  EXPONENTIAL_AT: 1e+9
+})
+
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
   idInGame: Number,
