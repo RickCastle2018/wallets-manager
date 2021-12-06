@@ -53,6 +53,9 @@ conn.once('open', async () => {
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
 
+  // TODO: settings && money-management
+  // POST/GET /set/exchangeRate and so on
+
   if (process.env.NODE_ENV === 'development') {
     // mintTestToken
   }

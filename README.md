@@ -1,7 +1,9 @@
 
 # wallets-manager
 
-**Status:** Everything with our coin and it's exchange (commision system) is ready.
+<!-- **Opensource notice:** if you want to use this code, you must talk about it with us before. wallets-manager was opensourced, but without free license. -->
+
+**Status:** API works, last implemented: exchange limits and wallets exporting.
 
 Start the service:
 

@@ -44,7 +44,6 @@ export function middleware (req, res, next) {
       return res.status(404).send('user-wallet not found')
     })
   }
-  console.log(5)
 }
 
 export function get (req, res) {
