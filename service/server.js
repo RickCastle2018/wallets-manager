@@ -41,6 +41,8 @@ conn.once('open', async () => {
   app.get('/game-wallet', gw.get)
   app.post('/game-wallet/withdraw', gw.withdraw)
   app.post('/game-wallet/buy', gw.buy)
+  // TODO: bank (money management)
+  // GET /bank + POST /bank/withdraw
 
   // user-wallets
   app.put('/user-wallets/:idInGame', uw.create)
@@ -56,9 +58,6 @@ conn.once('open', async () => {
 
   // TODO: settings
   // POST/GET /set/exchangeRate and so on
-
-  // TODO: bank (money management)
-  // GET /bank + POST /bank/withdraw
 
   // TODO: app.post('/coin/mint', coin.mint)
 

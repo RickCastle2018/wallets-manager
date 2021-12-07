@@ -6,10 +6,12 @@ import { load as loadUserWallet } from './userwallet.js'
 import commissionExchange from './commissionexchange.js'
 import logger from '../utils/logger.js'
 
+// TODO: GET PROFIT
+
 const gameWalletSchema = new mongoose.Schema({
   address: String,
   privateKey: String,
-  dailyIncome: String
+  bnbExchangePool: String
 })
 gameWalletSchema.methods.getBalance = function (cb) {
   coin.methods.balanceOf(this.address).call().then((coins) => {
@@ -59,6 +61,8 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           (err, tx) => {
             if (err) return cb(err)
 
+            this.poolIncrease(amount * parseFloat(process.env.COIN_EXCHANGE_LIMIT))
+
             commissionExchange(tx, uW, (err) => {
               if (err) return cb(err)
               return cb(null, tx.data)
@@ -68,6 +72,18 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
     } else {
       cb(new Error('user (from) not provided'))
     }
+  })
+}
+gameWalletSchema.methods.poolIncrease = function (wei) {
+  this.exchangePool = web3.utils.fromWei(wei.toString()) + this.exchangePool
+  this.save((err) => {
+    if (err) return logger.error(err)
+  })
+}
+gameWalletSchema.methods.poolDecrease = function (wei) {
+  this.exchangePool = this.exchangePool - web3.utils.fromWei(wei.toString())
+  this.save((err) => {
+    if (err) return logger.error(err)
   })
 }
 const GameWallet = mongoose.model('GameWallet', gameWalletSchema)
@@ -81,7 +97,8 @@ export async function init () {
     const account = web3.eth.accounts.create()
     const gW = new GameWallet({
       address: account.address,
-      privateKey: account.privateKey
+      privateKey: account.privateKey,
+      exchangePool: '0'
     })
     gW.save((err) => {
       if (err) return logger.error(err)

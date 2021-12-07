@@ -2,7 +2,7 @@
   "name": "wallets-manager",
   "version": "1.0",
   "type": "module",
-  "description": "Seastate Games Wallets-Manager",
+  "description": "Ogle Game Wallets-Manager",
   "main": "server.js",
   "scripts": {
     "test": "sudo node ./api/tests/test.js",
