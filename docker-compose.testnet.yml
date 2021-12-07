@@ -27,8 +27,10 @@ services:
       BLOCKCHAIN_ID: 97
       BLOCKCHAIN_NODE: wss://data-seed-prebsc-2-s1.binance.org:8545
       COIN_CONTRACT: "0x5b0150e7cdb02f8498675f8da8d648dee7c79c84"
+      CORP_WALLET: "0x24207D31F2439Bfa60B36154eB069198B8143337"
       BNB_PRICE: ${BNB_PRICE}
       EXCHANGE_FEE: ${EXCHANGE_FEE}
+      COIN_EXCHANGE_LIMIT: ${COIN_EXCHANGE_LIMIT}
       WEBHOOKS_LISTENER: ${WEBHOOKS_LISTENER}
     volumes:
       - ./service:/service

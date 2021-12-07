@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import Tx from '../wallets/transaction.js'
 import web3 from '../blockchain/web3.js'
-import gasToBNB from '../utils/gastobnb.js'
+import { gasToBNB } from '../utils/gastobnb.js'
 
 const abi = JSON.parse(readFileSync('./coin/contracts/oglc.json', 'utf8'))
 const coin = new web3.eth.Contract(abi, process.env.COIN_CONTRACT)

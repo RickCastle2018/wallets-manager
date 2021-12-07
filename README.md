@@ -3,7 +3,7 @@
 
 <!-- **Opensource notice:** if you want to use this code, you must talk about it with us before. wallets-manager was opensourced, but without free license. -->
 
-**Status:** API works, last implemented: exchange limits and wallets exporting.
+**Status:** unstable dev, new features: exchange limits, profit withdrawal.
 
 Start the service:
 
@@ -119,6 +119,12 @@ R:
 	transaction
 }
 ```
+
+#### POST /game-wallet/profit
+
+Withdraw profit to the corp. wallet.
+
+...
 
 #### POST /game-wallet/buy
 
@@ -353,3 +359,7 @@ You know, without backups you can loose everything. So, see `/db/backup.sh` and 
 ### Logs
 
 Are written to `service/exceptions.log` and `service/service.log` files. Implemented in `service/utils/logger.js`. In future we'll have monitoring system (alarms, grafana, etc.).
+
+### Stats + settings
+
+Coming soon.

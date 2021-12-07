@@ -27,8 +27,10 @@ services:
       BLOCKCHAIN_ID: 56
       BLOCKCHAIN_NODE: https://bsc-dataseed.binance.org/
       COIN_CONTRACT: "0x0d00758eb18d38a70f09fce1e1fc551c7e189fe8"
+      CORP_WALLET: "0x24207D31F2439Bfa60B36154eB069198B8143337"
       BNB_PRICE: ${BNB_PRICE}
       EXCHANGE_FEE: ${EXCHANGE_FEE}
+      COIN_EXCHANGE_LIMIT: ${COIN_EXCHANGE_LIMIT}
       WEBHOOKS_LISTENER: ${WEBHOOKS_LISTENER}
     volumes:
       - ./service:/service

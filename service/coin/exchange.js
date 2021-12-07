@@ -1,14 +1,9 @@
-import BigNumber from 'bignumber.js'
+import BigNumber from '../utils/calculations.js'
 import web3 from '../blockchain/web3.js'
 import logger from '../utils/logger.js'
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadGameWallet } from '../wallets/gamewallet.js'
-
-BigNumber.set({
-  DECIMAL_PLACES: 17,
-  EXPONENTIAL_AT: 1e+9
-})
 
 const bnbRate = parseInt(process.env.BNB_PRICE)
 const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)
@@ -58,7 +53,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
           break
         }
         case 'oglc': {
-          if (!checkLimits(gW, user, amountWei)) return cb(new Error('game-wallet bnb daily exchange limit reached'))
+          if (!checkLimits(gW, user, amountWei)) return cb(new Error('game-wallet bnb exchange limit reached'))
 
           const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).minus(ourFee).toString())
           const coinToTake = web3.utils.toWei(bigAmount.toString())

@@ -6,13 +6,12 @@ import { load as loadUserWallet } from './userwallet.js'
 import commissionExchange from './commissionexchange.js'
 import logger from '../utils/logger.js'
 
-// TODO: GET PROFIT
-
 const gameWalletSchema = new mongoose.Schema({
   address: String,
   privateKey: String,
   bnbExchangePool: String
 })
+// TODO: promises
 gameWalletSchema.methods.getBalance = function (cb) {
   coin.methods.balanceOf(this.address).call().then((coins) => {
     web3.eth.getBalance(this.address).then((bnb) => {
@@ -20,8 +19,8 @@ gameWalletSchema.methods.getBalance = function (cb) {
         oglc: coins,
         bnb: bnb
       })
-    })
-  })
+    }).catch(e => cb)
+  }).catch(e => cb)
 }
 gameWalletSchema.methods.withdraw = function (txId, currency, amount, recipientGameId, cb) {
   loadUserWallet(recipientGameId, (err, uW) => {
@@ -61,6 +60,7 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           (err, tx) => {
             if (err) return cb(err)
 
+            // TODO: accurate calculations
             this.poolIncrease(amount * parseFloat(process.env.COIN_EXCHANGE_LIMIT))
 
             commissionExchange(tx, uW, (err) => {
@@ -73,6 +73,9 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
       cb(new Error('user (from) not provided'))
     }
   })
+}
+gameWalletSchema.methods.withdrawProfit = function () {
+  // TODO: GET PROFIT
 }
 gameWalletSchema.methods.poolIncrease = function (wei) {
   this.exchangePool = web3.utils.fromWei(wei.toString()) + this.exchangePool
@@ -109,6 +112,16 @@ export async function init () {
     gameWallet = gW
   }
 }
-export function load (cb) {
-  cb(gameWallet)
+
+// Cached loading
+// export function load (cb) {
+//   cb(gameWallet)
+// }
+
+// TODO: promises
+export function load (callback) {
+  GameWallet.find({}, (err, gameWallets) => {
+    if (err) return console.error(err)
+    callback(gameWallets[0])
+  })
 }

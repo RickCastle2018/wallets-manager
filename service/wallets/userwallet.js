@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import axios from 'axios'
-import BigNumber from 'bignumber.js'
+import BigNumber from '../utils/calculations.js'
 
 import logger from '../utils/logger.js'
 import web3 from '../blockchain/web3.js'
@@ -11,11 +11,6 @@ import { transfer as transferBNB } from '../blockchain/bnb.js'
 import exchange from '../coin/exchange.js'
 import { load as loadGameWallet } from './gamewallet.js'
 import { usersAddrs } from './refills.js'
-
-BigNumber.set({
-  DECIMAL_PLACES: 17,
-  EXPONENTIAL_AT: 1e+9
-})
 
 const userWalletSchema = new mongoose.Schema({
   createdDate: Date,
@@ -30,8 +25,8 @@ userWalletSchema.methods.getBalance = function (cb) {
         oglc: coins,
         bnb: bnb
       })
-    })
-  })
+    }).catch(e => cb)
+  }).catch(e => cb)
 }
 userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientAddress, cb) {
   this.activate(err => {
@@ -145,6 +140,7 @@ export function create (userIdInGame, cb) {
   })
 }
 
+// TODO: promises + master func instead of zoo
 export function load (userIdInGame, cb) {
   UserWallet.findOne({
     idInGame: userIdInGame

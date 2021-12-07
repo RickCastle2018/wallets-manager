@@ -1,10 +1,5 @@
-import BigNumber from 'bignumber.js'
+import BigNumber from '../utils/calculations.js'
 import exchange from '../coin/exchange.js'
-
-BigNumber.set({
-  DECIMAL_PLACES: 17,
-  EXPONENTIAL_AT: 1e+9
-})
 
 export default function commissionExchange (tx, uW, cb) {
   const bnbFee = new BigNumber(tx.data.fee.bnb)

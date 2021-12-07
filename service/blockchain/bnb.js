@@ -1,6 +1,6 @@
 import Tx from '../wallets/transaction.js'
 import web3 from './web3.js'
-import gasToBNB from '../utils/gastobnb.js'
+import { gasToBNB } from '../utils/gastobnb.js'
 
 export function transfer (txId, fromUser, toAddress, amount, cb) {
   web3.eth.estimateGas({
