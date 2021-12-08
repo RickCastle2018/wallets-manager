@@ -112,6 +112,9 @@ export async function init () {
     const gW = gameWallets[0]
     gameWallet = gW
   }
+  gameWallet.getBalance(b => {
+    gameWallet.poolIncrease(b.bnb * process.env.COIN_EXCHANGE_LIMIT)
+  })
 }
 
 // Cached loading
