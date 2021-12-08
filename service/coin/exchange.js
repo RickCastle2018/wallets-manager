@@ -1,6 +1,7 @@
 import BigNumber from '../utils/calculations.js'
 import web3 from '../blockchain/web3.js'
 import logger from '../utils/logger.js'
+
 import { transfer as transferBNB } from '../blockchain/bnb.js'
 import { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadGameWallet } from '../wallets/gamewallet.js'
@@ -12,7 +13,7 @@ function checkLimits (gameWallet, userWallet, amountWei) {
   // game-wallet checkLimits
   gameWallet.getBalance((err, b) => {
     if (err) return logger.error(err)
-    const percentOfPool = 100 / (gameWallet.exchangePool / amountWei)
+    const percentOfPool = 100 / (gameWallet.exchangePool / web3.utils.fromWei(amountWei.toString()))
     if (percentOfPool <= 51) return true
     return false
   })

@@ -51,7 +51,7 @@ conn.once('open', async () => {
   app.get('/user-wallets/:idInGame', uw.get)
   app.post('/user-wallets/:idInGame/export', uw.exportPK)
   app.post('/user-wallets/:idInGame/withdraw', uw.withdraw)
-  // TODO: app.post('/user-wallets/:idInGame/reclaim', uw.reclaimCoin)
+  // TODO: app.post('/user-wallets/:idInGame/reclaim', uw.reclaim)
   // exchange
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)

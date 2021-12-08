@@ -76,15 +76,16 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
 }
 gameWalletSchema.methods.withdrawProfit = function () {
   // TODO: GET PROFIT
+
 }
 gameWalletSchema.methods.poolIncrease = function (wei) {
-  this.exchangePool = web3.utils.fromWei(wei.toString()) + this.exchangePool
+  this.bnbExchangePool = web3.utils.fromWei(wei.toString()) + this.bnbExchangePool
   this.save((err) => {
     if (err) return logger.error(err)
   })
 }
 gameWalletSchema.methods.poolDecrease = function (wei) {
-  this.exchangePool = this.exchangePool - web3.utils.fromWei(wei.toString())
+  this.bnbExchangePool = this.bnbExchangePool - web3.utils.fromWei(wei.toString())
   this.save((err) => {
     if (err) return logger.error(err)
   })
