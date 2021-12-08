@@ -20,5 +20,41 @@
     "data": {
       "privateKey": "0x6d9c3ea15736796b88fe3c440a97078adac0ab5d51a1e09ccc6106b1ed7afdfc"
     }
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/user-wallets/1/withdraw",
+    "data": {
+      "transaction_id": "uw-withdraw-bnb",
+      "amount": "10000000000000000",
+      "to": "0x43F966D9F6f43A4662E62dc613d4847C2C847B09",
+      "currency": "bnb"
+     }
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/transactions/uw-withdraw-bnb"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/uw-withdraw-bnb"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/user-wallets/1/withdraw",
+    "data": {
+      "transaction_id": "uw-withdraw-oglc",
+      "amount": "10000000000000000",
+      "to": "0x43F966D9F6f43A4662E62dc613d4847C2C847B09",
+      "currency": "oglc"
+     }
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/transactions/uw-withdraw-oglc"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/uw-withdraw-oglc"
   }
 ]

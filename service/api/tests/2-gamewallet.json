@@ -7,7 +7,7 @@
     "method": "post",
     "url": "http://127.0.0.1:2311/game-wallet/withdraw",
     "data": {
-      "transaction_id": 2,
+      "transaction_id": "gw-withdraw-bnb",
       "amount": "10000000000000000",
       "to": 1,
       "currency": "bnb"
@@ -15,6 +15,28 @@
   },
   {
     "method": "get",
-    "url": "http://127.0.0.1:2311/transactions/2"
+    "url": "http://127.0.0.1:2311/transactions/gw-withdraw-bnb"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/gw-withdraw-bnb"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/game-wallet/withdraw",
+    "data": {
+      "transaction_id": "gw-withdraw-oglc",
+      "amount": "10000000000000000",
+      "to": 1,
+      "currency": "oglc"
+    }
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/transactions/gw-withdraw-oglc"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/gw-withdraw-oglc"
   }
 ]

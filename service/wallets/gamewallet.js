@@ -9,7 +9,7 @@ import logger from '../utils/logger.js'
 const gameWalletSchema = new mongoose.Schema({
   address: String,
   privateKey: String,
-  bnbExchangePool: String
+  exchangePool: String
 })
 // TODO: promises
 gameWalletSchema.methods.getBalance = function (cb) {
@@ -79,13 +79,13 @@ gameWalletSchema.methods.withdrawProfit = function () {
 
 }
 gameWalletSchema.methods.poolIncrease = function (wei) {
-  this.bnbExchangePool = web3.utils.fromWei(wei.toString()) + this.bnbExchangePool
+  this.exchangePool = web3.utils.fromWei(wei.toString()) + this.exchangePool
   this.save((err) => {
     if (err) return logger.error(err)
   })
 }
 gameWalletSchema.methods.poolDecrease = function (wei) {
-  this.bnbExchangePool = this.bnbExchangePool - web3.utils.fromWei(wei.toString())
+  this.exchangePool = this.exchangePool - web3.utils.fromWei(wei.toString())
   this.save((err) => {
     if (err) return logger.error(err)
   })
@@ -112,7 +112,8 @@ export async function init () {
     const gW = gameWallets[0]
     gameWallet = gW
   }
-  gameWallet.getBalance(b => {
+  gameWallet.getBalance((err, b) => {
+    if (err) return logger.error(err)
     gameWallet.poolIncrease(b.bnb * process.env.COIN_EXCHANGE_LIMIT)
   })
 }

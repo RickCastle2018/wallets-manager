@@ -29,6 +29,7 @@ app.post('/wallets-manager', (req) => {
 function test (handles, i) {
   if (handles[i] === undefined) return console.log('all requests sended, check webhooks')
 
+  const handleName = new URL(handles[i].url).pathname
   axios({
     method: handles[i].method,
     url: handles[i].url,
@@ -36,14 +37,14 @@ function test (handles, i) {
   })
     .then(res => {
       if (res.status === 200) {
-        console.log('ok: ', i + 1)
+        console.log(`ok: ${handles[i].method} ${handleName}`)
         if (process.argv[2] === 'full') console.log(res.data)
         test(handles, i + 1)
       }
     })
     .catch(err => {
       if (!err.response) return console.log(`service down! fatal ${i + 1}`)
-      console.log(`err: ${i + 1}`, err.response.data)
+      console.log(`err: ${handles[i].method} ${handleName}`, err.response.data)
       test(handles, i + 1)
     })
 }

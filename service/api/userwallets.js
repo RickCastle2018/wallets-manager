@@ -6,6 +6,8 @@ import {
 } from '../wallets/userwallet.js'
 import web3 from '../blockchain/web3.js'
 
+import { load as loadGameWallet } from '../wallets/gamewallet.js'
+
 export function create (req, res) {
   createUserWallet(req.params.idInGame, (err, uW) => {
     if (err) return res.send(err.message)
@@ -67,9 +69,13 @@ export function withdraw (req, res) {
 }
 
 export function getExchange (req, res) {
-  res.send({
-    bnbPrice: process.env.BNB_PRICE,
-    exchangeFee: process.env.EXCHANGE_FEE
+  loadGameWallet(gW => {
+    console.log(gW.exchangePool)
+    res.send({
+      bnbPrice: process.env.BNB_PRICE,
+      exchangeFee: process.env.EXCHANGE_FEE,
+      exchangePool: gW.exchangePool
+    })
   })
 }
 
