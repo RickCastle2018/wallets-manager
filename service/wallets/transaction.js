@@ -72,13 +72,14 @@ export default class Tx {
       }
 
       function executeBefore (txs, i) {
-        if (txs[i] === undefined) return
+        if (txs[i] === undefined) return true
 
         const tx = txStorage.get(txs[i])
         if (tx === undefined) {
-          const err = 'executeBefore tx not found!'
+          const err = `executeBefore tx ${txs[i]} not found!`
+          if (cb) cb(new Error(err))
           logger.error(err)
-          if (cb) return cb(new Error(err))
+          return false
         } else {
           tx.execute(err => {
             if (err && cb) {
@@ -89,7 +90,14 @@ export default class Tx {
           })
         }
       }
-      if (this.data.executeBefore) executeBefore(this.data.executeBefore, 0)
+
+      if (this.data.executeBefore) {
+        const executeBeforeSuccess = executeBefore(this.data.executeBefore, 0)
+        if (!executeBeforeSuccess) {
+          if (cb) cb(new Error('executeBefore failed'))
+          return logger.error('executeBefore failed')
+        }
+      }
 
       web3.eth.sendSignedTransaction(this.raw)
         .once('transactionHash', function (hash) {

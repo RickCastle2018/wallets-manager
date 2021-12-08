@@ -1,0 +1,24 @@
+[
+  {
+    "method": "put",
+    "url": "http://127.0.0.1:2311/user-wallets/1"
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/user-wallets/1"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/user-wallets/1/export",
+    "data": {
+      "transaction_id": "uw-export"
+    }
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/user-wallets/1/import",
+    "data": {
+      "privateKey": "0x6d9c3ea15736796b88fe3c440a97078adac0ab5d51a1e09ccc6106b1ed7afdfc"
+    }
+  }
+]

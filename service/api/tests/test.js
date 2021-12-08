@@ -1,11 +1,13 @@
 // the main integration test engine (semi-automatic)
-// before running, request 1 BNB in the faucet testnet and put 1 test-OGLC into the game-wallet
-// `sudo node test.js`, check - test passed if there no errs (and webhooks received)
-// `sudo` needed to test webhooks (expose 80 port)
-// if you want to see service responces - `(sudo) node test.js full`
-// if you want to run another testcases - `(sudo) node test.js full/short filename.json`
 
-import { readFileSync } from 'fs'
+// Put 1 BNB 1 test-OGLC into the game-wallet and user-wallet (id: 1)
+// Run: `sudo node test.js`, check - test passed if there no errs (and webhooks received)
+
+// `sudo` needed to test webhooks (expose 80 port), but not required
+// if you want to see service responces - `(sudo) node test.js full`
+// if you want to run exact testcase - `(sudo) node test.js full/short filename.json`
+
+import { readFileSync, readdirSync } from 'fs'
 import express from 'express'
 import axios from 'axios'
 
@@ -47,12 +49,27 @@ function test (handles, i) {
 }
 
 function start (webhooks) {
-  let filename = 'test.json'
-  if (process.argv[3]) filename = process.argv[3]
+  let handles = []
+  if (process.argv[3]) {
+    const filename = process.argv[3]
+    handles = JSON.parse(readFileSync('./' + filename, 'utf8'))
+  } else {
+    const files = readdirSync('./')
+    files.forEach(f => {
+      const i = f.charAt(0)
+      const sortedFiles = []
+      if (!isNaN(parseInt(i))) {
+        sortedFiles[i - 1] = JSON.parse(readFileSync('./' + f, 'utf8'))
+      }
+      sortedFiles.forEach(f => {
+        f.forEach(t => {
+          handles.push(t)
+        })
+      })
+    })
+  }
 
-  const handles = JSON.parse(readFileSync('./' + filename, 'utf8'))
   console.log('Requests to test: ', handles.length)
-
   if (webhooks) console.log('Check webhooks, also.')
 
   test(handles, 0) // stunning recursive function!
