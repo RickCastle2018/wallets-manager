@@ -1,0 +1,38 @@
+[
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/game-wallet/buy",
+    "data": {
+      "transaction_id": "buy-oglc",
+      "amount": "5000000000000000",
+      "from": 1,
+      "currency": "oglc"
+    }
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/transactions/buy-oglc"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/buy-oglc"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/game-wallet/buy",
+    "data": {
+      "transaction_id": "buy-bnb",
+      "amount": "5000000000000000",
+      "from": 1,
+      "currency": "oglc"
+    }
+  },
+  {
+    "method": "get",
+    "url": "http://127.0.0.1:2311/transactions/buy-bnb"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/buy-bnb"
+  }
+]

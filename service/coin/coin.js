@@ -35,9 +35,8 @@ export function transfer (txId, fromUser, toAddress, amount, cb) {
         currency: 'oglc',
         amount: amount,
         fee: {
-          gas: estimatedGas,
           bnb: bnbGas,
-          oglc: bnbGas * process.env.BNB_PRICE
+          oglc: (bnbGas * process.env.BNB_PRICE).toString()
         },
         executed: false
       })

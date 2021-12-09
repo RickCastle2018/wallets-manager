@@ -57,10 +57,8 @@ R:
 	currency: string, // oglc/bnb/nft
 	amount: string, // wei if amount / int if nft
 	fee: {
-		gas: string,
 		bnb: string, // wei
 		oglc: string, // also wei
-		usdt: string // not implemented for now
 	},
 	executed: bool,
 	result: {

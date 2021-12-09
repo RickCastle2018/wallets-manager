@@ -60,11 +60,11 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
           (err, tx) => {
             if (err) return cb(err)
 
-            // TODO: accurate calculations
-            this.poolIncrease(amount * parseFloat(process.env.COIN_EXCHANGE_LIMIT))
+            if (transfer === transferBNB) return cb(null, tx.data)
 
             commissionExchange(tx, uW, (err) => {
               if (err) return cb(err)
+              this.poolIncrease(amount * parseFloat(process.env.COIN_EXCHANGE_LIMIT))
               return cb(null, tx.data)
             })
           })

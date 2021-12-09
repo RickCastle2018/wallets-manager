@@ -43,7 +43,7 @@ function test (handles, i) {
       }
     })
     .catch(err => {
-      if (!err.response) return console.log(`service down! fatal ${i + 1}`)
+      if (!err.response) return console.log(`service down! fatal ${handles[i].method} ${handleName}`)
       console.log(`err: ${handles[i].method} ${handleName}`, err.response.data)
       test(handles, i + 1)
     })

@@ -1,0 +1,36 @@
+[
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/user-wallets/1/exchange",
+    "data": {
+      "transaction_id": ["exchange-bnb-c", "exchange-bnb-b"],
+      "amount": "5000000000000000",
+      "currency": "bnb"
+    }
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/exchange-bnb-c"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/exchange-bnb-b"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/user-wallets/1/exchange",
+    "data": {
+      "transaction_id": ["exchange-oglc-c", "exchange-oglc-b"],
+      "amount": "5000000000000000",
+      "currency": "oglc"
+    }
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/exchange-oglc-c"
+  },
+  {
+    "method": "post",
+    "url": "http://127.0.0.1:2311/transactions/exchange-oglc-b"
+  }
+]
