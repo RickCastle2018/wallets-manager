@@ -54,10 +54,10 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
           break
         }
         case 'oglc': {
-          if (!checkLimits(gW, user, amountWei)) return cb(new Error('game-wallet bnb exchange limit reached'))
-
           const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).minus(ourFee).toString())
           const coinToTake = web3.utils.toWei(bigAmount.toString())
+
+          if (!checkLimits(gW, user, bnbToSend)) return cb(new Error('game-wallet bnb exchange limit reached'))
 
           transferCoin(
             txIds[0],
