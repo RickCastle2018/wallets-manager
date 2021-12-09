@@ -12,6 +12,7 @@ function checkLimits (gameWallet, userWallet, amountWei) {
   // game-wallet checkLimits
   const percentOfPool = 100 * (web3.utils.fromWei(amountWei.toString()) / gameWallet.exchangePool)
   console.log(percentOfPool)
+  console.log(web3.utils.fromWei(amountWei.toString()))
   if (percentOfPool <= 51) return true
   return false
 }
