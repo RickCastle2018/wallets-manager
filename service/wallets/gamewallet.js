@@ -116,7 +116,7 @@ export async function init () {
   }
   gameWallet.getBalance((err, b) => {
     if (err) return logger.error(err)
-    gameWallet.exchangePool = (web3.utils.fromWei(b.bnb.toString()) * process.env.COIN_EXCHANGE_LIMIT).toString()
+    gameWallet.exchangePool = (parseFloat(web3.utils.fromWei(b.bnb.toString())) * parseFloat(process.env.COIN_EXCHANGE_LIMIT)).toString()
     gameWallet.save((err) => {
       if (err) return logger.error(err)
     })
