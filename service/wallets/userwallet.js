@@ -49,8 +49,10 @@ userWalletSchema.methods.withdraw = function (txId, currency, amount, recipientA
   })
 }
 userWalletSchema.methods.exchange = function (txIds, currencyFrom, amount, cb) {
+  console.log('uwschema')
   exchange(txIds, this, amount, currencyFrom,
     (err) => {
+      console.log('uwschema callback')
       cb(err)
     })
 }

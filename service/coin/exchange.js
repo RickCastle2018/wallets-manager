@@ -18,9 +18,13 @@ function checkLimits (gameWallet, userWallet, amountWei) {
 export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
   loadGameWallet((gW) => {
     gW.getBalance(b => {
+      console.log('getBalance')
+
       let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
       bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
       const ourFee = web3.utils.fromWei(bigAmount.multipliedBy(exchangeFee).toString())
+
+      console.log('ourfee', ourFee)
 
       switch (currencyFrom) {
         case 'bnb': {
@@ -50,10 +54,18 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
           break
         }
         case 'oglc': {
+          console.log('before calcs')
+
           const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).minus(ourFee).toString())
           const coinToTake = web3.utils.toWei(bigAmount.toString())
 
+          console.log(bnbToSend, coinToTake)
+
+          console.log('before checkLimits')
+
           if (!checkLimits(gW, user, bnbToSend)) return cb(new Error('game-wallet bnb exchange limit reached'))
+
+          console.log('checkLimits()')
 
           transferCoin(
             txIds[0],
@@ -62,6 +74,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
             coinToTake,
             (err, tx) => {
               if (err) return cb(err)
+              console.log('1 tx')
 
               const gameWallet = gW
               transferBNB(
@@ -72,6 +85,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
                 (err, tx) => {
                   if (err) return cb(err)
                   gameWallet.poolDecrease(bnbToSend)
+                  console.log('second tx')
                   cb()
                 }
               )
