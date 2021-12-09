@@ -11,8 +11,9 @@ const exchangeFee = parseFloat(process.env.EXCHANGE_FEE)
 function checkLimits (gameWallet, userWallet, amountWei) {
   // game-wallet checkLimits
   const percentOfPool = 100 * (web3.utils.fromWei(amountWei.toString()) / gameWallet.exchangePool)
-  console.log(percentOfPool)
-  console.log(web3.utils.fromWei(amountWei.toString()))
+  console.log('percent', percentOfPool)
+  console.log('fromwei', web3.utils.fromWei(amountWei.toString()))
+  console.log('checklimsamountwei', amountWei)
   if (percentOfPool <= 51) return true
   return false
 }
@@ -23,6 +24,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
       let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
       bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
       const ourFee = bigAmount.multipliedBy(exchangeFee)
+      console.log('fee', ourFee)
 
       switch (currencyFrom) {
         case 'bnb': {
