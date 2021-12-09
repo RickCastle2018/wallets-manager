@@ -116,7 +116,10 @@ export async function init () {
   }
   gameWallet.getBalance((err, b) => {
     if (err) return logger.error(err)
-    gameWallet.poolIncrease(b.bnb * process.env.COIN_EXCHANGE_LIMIT)
+    gameWallet.exchangePool = (b.bnb * process.env.COIN_EXCHANGE_LIMIT).toString()
+    gameWallet.save((err) => {
+      if (err) return logger.error(err)
+    })
   })
 }
 
