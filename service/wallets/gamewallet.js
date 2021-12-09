@@ -80,14 +80,14 @@ gameWalletSchema.methods.withdrawProfit = function () {
 }
 gameWalletSchema.methods.poolIncrease = function (wei) {
   this.exchangePool = parseFloat(this.exchangePool) + parseFloat(web3.utils.fromWei(wei.toString()))
-  this.exchangePool = this.exchangePool.toFixed(6).toString()
+  this.exchangePool = this.exchangePool.toString()
   this.save((err) => {
     if (err) return logger.error(err)
   })
 }
 gameWalletSchema.methods.poolDecrease = function (wei) {
   this.exchangePool = parseFloat(this.exchangePool) - parseFloat(web3.utils.fromWei(wei.toString()))
-  this.exchangePool = this.exchangePool.toFixed(6).toString()
+  this.exchangePool = this.exchangePool.toString()
   this.save((err) => {
     if (err) return logger.error(err)
   })

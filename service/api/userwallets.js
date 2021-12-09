@@ -70,7 +70,6 @@ export function withdraw (req, res) {
 
 export function getExchange (req, res) {
   loadGameWallet(gW => {
-    console.log(gW.exchangePool)
     res.send({
       bnbPrice: process.env.BNB_PRICE,
       exchangeFee: process.env.EXCHANGE_FEE,
