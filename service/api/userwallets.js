@@ -80,6 +80,7 @@ export function getExchange (req, res) {
 
 export function exchange (req, res) {
   if (!req.body.currency) return res.status(500).send('no currency provided')
+  req.body.transaction_id = JSON.parse(req.body.transaction_id)
 
   req.userWallet.exchange(req.body.transaction_id, req.body.currency, req.body.amount, (err) => {
     if (err) return res.status(500).send(err.message)
