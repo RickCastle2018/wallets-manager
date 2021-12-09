@@ -200,7 +200,7 @@ Q:
 
 #### POST /user-wallets/{user_id}/export
 
-Game will get 200 OK responce and then webhook in which private key will be provided. Webhook is for security purposes. 
+Game will get 200 OK responce and then webhook in which private key will be provided. Webhook is for security purposes.
 
 ```js
 Q:
@@ -248,7 +248,8 @@ R:
 
 {
     bnbPrice: int, // how much OGLC you can get for 1 BNB
-    exchangeFee: float // ex. 0.25
+    exchangeFee: float, // ex. 0.25
+    exchangePool: float // BNB (ex. 100.5) not wei
 }
 ```
 
