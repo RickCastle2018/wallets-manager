@@ -16,84 +16,71 @@ function checkLimits (gameWallet, userWallet, amountWei) {
 }
 
 export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
+  const bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
+
   loadGameWallet((gW) => {
-    gW.getBalance(b => {
-      console.log('getBalance')
+    switch (currencyFrom) {
+      case 'bnb': {
+        let coinsToSend = bigAmount.multipliedBy(bnbRate)
+        const ourFee = coinsToSend.multipliedBy(exchangeFee)
+        coinsToSend = web3.utils.toWei(coinsToSend.minus(ourFee).toString())
 
-      let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
-      bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
-      const ourFee = web3.utils.fromWei(bigAmount.multipliedBy(exchangeFee).toString())
+        const bnbToTake = web3.utils.toWei(bigAmount.toString())
 
-      console.log('ourfee', ourFee)
+        transferCoin(
+          txIds[0],
+          gW,
+          user.address,
+          coinsToSend,
+          (err, tx) => {
+            if (err) return cb(err)
 
-      switch (currencyFrom) {
-        case 'bnb': {
-          const coinsToSend = web3.utils.toWei(bigAmount.multipliedBy(bnbRate).minus(ourFee).toString())
-          const bnbToTake = web3.utils.toWei(bigAmount.toString())
-
-          transferCoin(
-            txIds[0],
-            gW,
-            user.address,
-            coinsToSend,
-            (err, tx) => {
-              if (err) return cb(err)
-
-              transferBNB(
-                txIds[1],
-                user,
-                gW.address,
-                bnbToTake,
-                (err, tx) => {
-                  if (err) return cb(err)
-                  cb()
-                }
-              )
-            }
-          )
-          break
-        }
-        case 'oglc': {
-          console.log('before calcs')
-
-          const bnbToSend = web3.utils.toWei(bigAmount.dividedBy(bnbRate).minus(ourFee).toString())
-          const coinToTake = web3.utils.toWei(bigAmount.toString())
-
-          console.log(bnbToSend, coinToTake)
-
-          console.log('before checkLimits')
-
-          if (!checkLimits(gW, user, bnbToSend)) return cb(new Error('game-wallet bnb exchange limit reached'))
-
-          console.log('checkLimits()')
-
-          transferCoin(
-            txIds[0],
-            user,
-            gW.address,
-            coinToTake,
-            (err, tx) => {
-              if (err) return cb(err)
-              console.log('1 tx')
-
-              const gameWallet = gW
-              transferBNB(
-                txIds[1],
-                gW,
-                user.address,
-                bnbToSend,
-                (err, tx) => {
-                  if (err) return cb(err)
-                  gameWallet.poolDecrease(bnbToSend)
-                  console.log('second tx')
-                  cb()
-                }
-              )
-            }
-          )
-          break
-        }
+            transferBNB(
+              txIds[1],
+              user,
+              gW.address,
+              bnbToTake,
+              (err, tx) => {
+                if (err) return cb(err)
+                cb()
+              }
+            )
+          }
+        )
+        break
       }
-    })
+      case 'oglc': {
+        let bnbToSend = bigAmount.dividedBy(bnbRate)
+        const ourFee = bnbToSend.multipliedBy(exchangeFee)
+        bnbToSend = web3.utils.toWei(bnbToSend.minus(ourFee).toString())
+        const coinToTake = web3.utils.toWei(bigAmount.toString())
+
+        if (!checkLimits(gW, user, bnbToSend)) return cb(new Error('game-wallet bnb exchange limit reached'))
+
+        transferCoin(
+          txIds[0],
+          user,
+          gW.address,
+          coinToTake,
+          (err, tx) => {
+            if (err) return cb(err)
+
+            const gameWallet = gW
+            transferBNB(
+              txIds[1],
+              gW,
+              user.address,
+              bnbToSend,
+              (err, tx) => {
+                if (err) return cb(err)
+                gameWallet.poolDecrease(bnbToSend)
+                cb()
+              }
+            )
+          }
+        )
+        break
+      }
+    }
   })
 }
