@@ -23,7 +23,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
     gW.getBalance(b => {
       let bigAmount = new BigNumber(web3.utils.fromWei(amountWei))
       bigAmount = bigAmount.minus(bigAmount.multipliedBy(exchangeFee))
-      const ourFee = web3.utils.fromWei(bigAmount.multipliedBy(exchangeFee))
+      const ourFee = web3.utils.fromWei(bigAmount.multipliedBy(exchangeFee).toString())
       console.log('fee', ourFee)
 
       switch (currencyFrom) {
