@@ -37,32 +37,34 @@ conn.once('open', async () => {
   app.post('/transactions/:txId', tx.proceed)
 
   // game-wallet
+  // game-wallet --> bank ?
   app.use('/game-wallet*', gw.middleware)
   app.get('/game-wallet', gw.get)
   app.post('/game-wallet/withdraw', gw.withdraw)
-  app.post('/game-wallet/buy', gw.buy)
-  // TODO: bank (money management)
-  // GET /bank + POST /bank/withdraw
+  app.post('/game-wallet/buy', gw.buy) // TODO: move away!
+  // TODO: app.post('/game-wallet/profit', gw.profit)
+  // app.get('/game-wallet/profit', gw.profit)
 
   // user-wallets
+  // user-wallets --> wallets ?
   app.put('/user-wallets/:idInGame', uw.create)
   app.use('/user-wallets/:idInGame*', uw.middleware)
   app.post('/user-wallets/:idInGame/import', uw.importPK)
   app.get('/user-wallets/:idInGame', uw.get)
   app.post('/user-wallets/:idInGame/export', uw.exportPK)
   app.post('/user-wallets/:idInGame/withdraw', uw.withdraw)
-  // TODO: app.post('/user-wallets/:idInGame/reclaim', uw.reclaim)
   // exchange
   app.get('/user-wallets/:idInGame/exchange', uw.getExchange)
   app.post('/user-wallets/:idInGame/exchange', uw.exchange)
 
-  // TODO: settings
-  // POST/GET /set/exchangeRate and so on
+  // TODO: app.post('/coin/ogle/mint', coin.mint)
+  // app.get('/coin/oglc/balance') !!!
 
-  // TODO: app.post('/coin/mint', coin.mint)
+  // app.get('/coin/exchange', coin.getExchange) ?
+  // app.post('/coin/exchange', coin.modifyExchange) ?
 
   if (process.env.NODE_ENV === 'development') {
-    // mintTestToken
+    // debug funcs?
   }
 
   // TODO: nfts

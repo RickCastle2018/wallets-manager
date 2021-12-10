@@ -78,7 +78,6 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
 }
 gameWalletSchema.methods.withdrawProfit = function () {
   // TODO: GET PROFIT
-
 }
 gameWalletSchema.methods.poolIncrease = function (wei) {
   this.exchangePool = parseFloat(this.exchangePool) + parseFloat(web3.utils.fromWei(wei.toString()))
