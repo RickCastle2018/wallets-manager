@@ -77,14 +77,16 @@ export default class Tx {
 
         const tx = txStorage.get(txs[i])
         if (tx === undefined) {
-          const err = 'executeBefore tx not found!'
+          const err = `executeBefore tx ${txs[i]} not found!`
           logger.error(err)
           if (cb) return cb(new Error(err))
         } else {
           tx.execute(err => {
-            if (err && cb) {
-              logger.error(err)
-              return cb(err)
+            if (err) {
+              const info = `executeBefore ${tx.id} failed`
+              logger.error(info, err)
+              if (cb) cb(err)
+              return
             }
             executeBefore(txs, i + 1)
           })

@@ -9,6 +9,8 @@ export const requestedTransactions = new NodeCache({
   deleteOnExpire: false
 })
 
+// TODO: refills update gw limits
+
 export let usersAddrs
 async function init () {
   const users = await UserWallet.find({}, 'address -_id')
@@ -60,12 +62,11 @@ export async function listenRefills () {
   }
 
   // TODO: connect services with websockets & write websockets listener
-  // TODO: no websockets
+  // TODO: debug whole refills listening
   setInterval(() => {
     coin.getPastEvents('Transfer', options,
       (err, events) => {
         if (err) return logger.error(err)
-        // TODO: test this all console.log(events)
         events.forEach(e => processEvent)
       })
   }, 3500) // 3.5 seconds
