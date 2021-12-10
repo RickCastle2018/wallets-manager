@@ -2,10 +2,11 @@ import BigNumber from 'bignumber.js'
 import web3 from '../blockchain/web3.js'
 
 BigNumber.set({
-  DECIMAL_PLACES: 17,
+  DECIMAL_PLACES: 8,
   EXPONENTIAL_AT: 1e+9
 })
-export default BigNumber
+const bn = BigNumber
+export default bn
 
 export async function gasToBNB (gas, gasPrice) {
   if (!gasPrice) gasPrice = await web3.eth.getGasPrice()
