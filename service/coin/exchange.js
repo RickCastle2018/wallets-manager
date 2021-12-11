@@ -35,6 +35,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
           (err, tx) => {
             if (err) return cb(err)
 
+            const gameWallet = gW
             transferBNB(
               txIds[1],
               user,
@@ -42,6 +43,7 @@ export default function exchange (txIds, user, amountWei, currencyFrom, cb) {
               bnbToTake,
               (err, tx) => {
                 if (err) return cb(err)
+                gameWallet.poolIncrease(bnbToTake * process.env.COIN_EXCHANGE_LIMIT)
                 cb()
               }
             )
