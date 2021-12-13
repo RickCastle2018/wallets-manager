@@ -7,7 +7,7 @@
 
 Start the service:
 
-*Before doing steps listed below you must run `api/test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
+*Before doing steps listed below you must run `api/tests/test.js`, but leave deployment to me or our future CI/CD pipeline if it's possible, please.*
 
 1. Install Docker, enable it in systemctl,
 2. `git pull` this repository,
@@ -24,10 +24,10 @@ If you got an error -- contact maintainer.
 
 API methods documentation. Maintainer --  @RickCastle2018 (@nikonovcc in Telegram).
 
-**Access** at `127.0.0.1:2311/...`. Authorization way (resembles JWT):
+<!-- **Access** at `127.0.0.1:2311/...`. Authorization way (resembles JWT):
 
 1. Game backend gets secret code once per 15 min by special webhook
-2. When game backend makes any request, it shoud have Authorization HTTP header with the following value: Bearer SECRET.SIGNATURE (SIGNATURE -- SECRET, RSA-signed by backend)
+2. When game backend makes any request, it shoud have Authorization HTTP header with the following value: Bearer SECRET.SIGNATURE (SIGNATURE -- SECRET, RSA-signed by backend) -->
 
 Built with REST in mind. So all query examples are JSON which you have to send in POST-data to service. And there's example for each API method: *Q --  Query struct. R -- Response struct*. If there's no *Responce* in example, service will return just 200 HTTP code or 500 error.
 
