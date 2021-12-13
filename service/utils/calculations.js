@@ -13,3 +13,17 @@ export async function gasToBNB (gas, gasPrice) {
   const exp = gas * web3.utils.fromWei(gasPrice, 'gwei') * 1.01
   return web3.utils.toWei(Math.round(exp).toString(), 'gwei')
 }
+
+// how many percents is x from number
+export function xPercentsFromNumber (x, from) {
+  x = bn(x)
+  from = bn(from)
+  return x.multipliedBy(100).dividedBy(from)
+}
+
+// how many is x percents from number
+export function xPercentsOfNumber (x, of) {
+  x = bn(x)
+  of = bn(of)
+  return of.multipliedBy(x.dividedBy(100))
+}

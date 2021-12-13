@@ -40,3 +40,9 @@ export function buy (req, res) {
       res.status(200).send(data)
     })
 }
+
+// function profit (req, res) {
+//   if (!req.body.currency) return res.status(500).send('no currency provided')
+
+//   req.gameWallet.profit(req.body.transaction_id, req.body.currency, req.body.percent)
+// }

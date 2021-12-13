@@ -5,6 +5,7 @@ import coin, { transfer as transferCoin } from '../coin/coin.js'
 import { load as loadUserWallet } from './userwallet.js'
 import commissionExchange from './commissionexchange.js'
 import logger from '../utils/logger.js'
+import { xPercentsOfNumber } from '../utils/calculations.js'
 
 const gameWalletSchema = new mongoose.Schema({
   address: String,
@@ -76,8 +77,25 @@ gameWalletSchema.methods.buy = function (txId, currency, amount, depositorGameId
     }
   })
 }
-gameWalletSchema.methods.withdrawProfit = function () {
-  // TODO: GET PROFIT
+// TODO: not percent, but autocalculation!
+gameWalletSchema.methods.withdrawProfit = function (txId, currency, percent, cb) {
+  gameWallet.getBalance((err, b) => {
+    if (err) return cb(err)
+    const balance = web3.utils.fromWei(b)
+    const bnAmount = xPercentsOfNumber(percent, balance)
+    const amountWei = web3.utils.toWei(bnAmount.toString())
+
+    let transfer = transferBNB
+    if (currency === 'oglc') transfer = transferCoin
+
+    transfer(txId, this, process.env.CORP_WALLET, amountWei,
+      (err, tx) => {
+        if (err) return cb(err)
+        tx.execute()
+        cb()
+      }
+    )
+  })
 }
 gameWalletSchema.methods.poolIncrease = function (wei) {
   this.exchangePool = parseFloat(this.exchangePool) + parseFloat(web3.utils.fromWei(wei.toString()))
